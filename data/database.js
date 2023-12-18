@@ -59,7 +59,7 @@ export async function initdb() {
 
     //console.log(levelData.data);
     levelData.data.forEach((row) => {
-        console.log(row.id, row.length, row.minScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
+        //console.log(row.id, row.length, row.minScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
         insertLevel(row.id, row.length, row.minScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
     });
 
@@ -72,7 +72,7 @@ function insertLevel(levelID, length, minScore, letter1, letter1pos, letter2, le
             'INSERT INTO levels (id, length, score, best_score, min_score, letter1, letter1_pos, letter2, letter2_pos, letter3, letter3_pos) VALUES (?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?);',
             [levelID, length, minScore, letter1, letter1pos, letter2, letter2pos, letter3, letter3pos],
             () => {
-                console.log('INSERT Success levelID:', levelID);
+                //console.log('INSERT Success levelID:', levelID);
             },
             error => {
                 console.log('INSERT ERROR ID:', levelID);
@@ -121,7 +121,7 @@ export function getLevelData(level) {
                 'SELECT * FROM levels WHERE id = ?;',
                 [level],
                 (_, { rows }) => {
-                    if(rows.length === 1) {
+                    if (rows.length === 1) {
                         resolve(rows._array[0]);
                     }
                     else {
@@ -144,10 +144,10 @@ export function getCompletedWords(level) {
                 'SELECT * FROM completedWords WHERE id = ?;',
                 [level],
                 (_, { rows }) => {
-                    if(rows.length > 0) {
+                    if (rows.length > 0) {
                         //resolve(rows._array);
                         let list = []
-                        for(let i = 0; i < rows.length; i++) {
+                        for (let i = 0; i < rows.length; i++) {
                             list.push(rows._array[i]["word"]);
                         }
                         resolve(list);
@@ -207,5 +207,71 @@ export function updateBestScore(level) {
                 console.error('Error updating best score:', level);
             }
         );
+    });
+}
+
+export async function refreshLevel(level) {
+    // set score to 0, leave best score alone
+    // destroy word list
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                'UPDATE levels SET score = 0 WHERE id = ?;',
+                [level],
+                () => {
+                    console.log('Refresh layer 1/2 success');
+                    tx.executeSql(
+                        'DELETE FROM completedWords WHERE id = ?;',
+                        [level],
+                        () => {
+                            console.log('Refresh layer 2/2 success.');
+                            resolve();
+                        },
+                        error => {
+                            console.log('Refresh layer 2/2 failure...');
+                            reject(error);
+                        }
+
+                    );
+                },
+                error => {
+                    console.error('Refresh layer 1/2 error. Ending refresh');
+                    reject(error);
+                }
+            );
+        });
+    });
+}
+
+// A developer function for wiping the entire game without having to do weird code each time
+export async function bigRefresh() {
+    db.transaction(tx => {
+        tx.executeSql (
+            'DELETE FROM completedWords;',
+            [],
+            () => {
+                console.log('Deleted all rows in completedWords');
+            },
+            error => {}
+        );
+        tx.executeSql (
+            'UPDATE levels SET score = 0, best_score = 0;',
+            [],
+            () => console.log('Success wiping all levels scores'),
+            error => console.log('error wiping scores')
+        );
+    });
+}
+
+export async function hardReset() {
+    return new Promise((resolve, reject) => {
+        dropTables();
+        setTimeout(() => {
+            initdb();
+            AsyncStorage.setItem('initDB', 'init');
+            setTimeout(() => {
+                resolve();
+            }, 5000)
+        }, 5000);
     });
 }

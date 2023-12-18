@@ -1,18 +1,19 @@
-import { faArrowLeft, faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faArrowRight, faCheck, faArrowsRotate, faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import dictionary from '../assets/dictionary.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { dropTables, getCompletedWords, getLevelData, initdb, insertCompletedWord, printTabledata, updateBestScore, updateScore } from '../data/database';
+import { dropTables, getCompletedWords, getLevelData, initdb, insertCompletedWord, printTabledata, refreshLevel, updateBestScore, updateScore } from '../data/database';
 import { Tile } from './Tile';
 import { Key } from './Key';
 import { BackSpace } from './BackSpace';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Game() {
     const insets = useSafeAreaInsets();
-    const [dbReady, setDBReady] = useState(false); // a flag for making sure the database is ready before calling from it
+    //const [dbReady, setDBReady] = useState(false); // a flag for making sure the database is ready before calling from it
     const [color, setColor] = useState('#094387');
     const [level, setLevel] = useState(0); // valid levels will be greater than 0
     const [defaultWord, setDefaultWord] = useState([]); // good for helping reset the current word when needed
@@ -25,125 +26,76 @@ export default function Game() {
     const [valid, setValid] = useState(''); // if valid is true, the tiles turn green?
     const [error, setError] = useState('');
 
-    
-    /*console.log('---------------');
-    console.log(level);
-    console.log(defaultWord);
-    console.log(score);
-    console.log(bestScore);
-    console.log(minScore);
-    console.log('---------------');*/
-    
-    //dropTables();
-    
+    const navigation = useNavigation();
+
     
     useEffect(() => {
-
-        try {
-            AsyncStorage.getItem('initDB')
-                .then((value) => {
-                    if (!value) {
-                        console.log('Then init database');
-                        // init database
-                        initdb();
-                        //printTabledata();
-                        AsyncStorage.setItem('initDB', 'init');
-                    }
-                    else {
-                        // database has been initialized
-                        console.log('Database has been initialized.');
-                        //printTabledata();
-                        
-                    }
-                    setDBReady(true);
-                });
-        }
-        catch (error) {
-            // Error init database
-            console.error('Error initializing database!');
-        }
-
-    }, []);
-
-    // level value will be a string in storage. Need to convert quickly
-    // funny enough, the string seemed to work lol
-    // this might be getting called before the database has finished initializing...
-    useEffect(() => {
-        if(dbReady) {
-            console.log('DATABASE IS READY');
-            if (!level) {
-                try {
-                    AsyncStorage.getItem('level')
-                        .then((value) => {
-                            if (!value) {
-                                // value doesn't exist or is 0 for some reason
-                                AsyncStorage.setItem('level', '1');
-                                setLevel(1);
-                            }
-                            else {
-                                setLevel(Number(value)); // when the new level is selected by any method, AsyncStorage.setItem('level', num);
-                                getLevel(value);
-                            }
-                        });
-                }
-
-                catch (error) {
-                    // Error getting item
-                }
+        if (!level) {
+            try {
+                AsyncStorage.getItem('level')
+                    .then((value) => {
+                        if (!value) {
+                            // value doesn't exist or is 0 for some reason
+                            AsyncStorage.setItem('level', '1');
+                            setLevel(1);
+                        }
+                        else {
+                            setLevel(Number(value)); // when the new level is selected by any method, AsyncStorage.setItem('level', num);
+                            getLevel(value);
+                        }
+                    });
             }
-            else {
-                // getLevelData for this level
-                getLevel(level);
+
+            catch (error) {
+                // Error getting item
             }
         }
         else {
-            console.log('Database isnt ready... waiting until ready.');
+            // getLevelData for this level
+            getLevel(level); // this might be slowing it down in some cases
         }
-    }, [level, dbReady]);
-    
-
-    
+    }, /*[level]*/ []);
     
 
 
     function getLevel(level) {
         getLevelData(level)
-        .then((data) => {
-            //console.log('DATA', data);
-            // create a new array with data.length, each index = ''
-            // fill the new array with the correct positions
-            // set this new array as the default array
-            // set the score, bestscore, and minscore states
-            let newDefault = [];
-            for (let i = 0; i < data.length; i++) {
-                newDefault.push('');
-            }
-            if (data.letter1 && data.letter1_pos) {
-                console.log('letter 1 and pos');
-                newDefault[data.letter1_pos] = data.letter1;
-            }
-            if (data.letter2 && data.letter2_pos) {
-                console.log('letter 2 and pos');
-                newDefault[data.letter2_pos] = data.letter2;
-            }
-            if (data.letter3 && data.letter3_pos) {
-                console.log('letter 3 and pos');
-                newDefault[data.letter3_pos] = data.letter3;
-            }
-            //console.log(newDefault);
-            setDefaultWord(newDefault);
-            setCurrentWord(newDefault);
-            setScore(data.score);
-            setBestScore(data.best_score);
-            setMinScore(data.min_score);
-        });
+            .then((data) => {
+                //console.log('DATA', data);
+                // create a new array with data.length, each index = ''
+                // fill the new array with the correct positions
+                // set this new array as the default array
+                // set the score, bestscore, and minscore states
+                let newDefault = [];
+                for (let i = 0; i < data.length; i++) {
+                    newDefault.push('');
+                }
+                if (data.letter1 && data.letter1_pos || data.letter1_pos === 0) {
+                    //console.log('letter 1 and pos');
+                    newDefault[data.letter1_pos] = data.letter1;
+                }
+                if (data.letter2 && data.letter2_pos || data.letter2_pos === 0) {
+                    //console.log('letter 2 and pos');
+                    newDefault[data.letter2_pos] = data.letter2;
+                }
+                if (data.letter3 && data.letter3_pos || data.letter3_pos === 0) {
+                    //console.log('letter 3 and pos');
+                    newDefault[data.letter3_pos] = data.letter3;
+                }
+                //console.log(newDefault);
+                setDefaultWord(newDefault);
+                setCurrentWord(newDefault);
+                setScore(data.score);
+                setBestScore(data.best_score);
+                setMinScore(data.min_score);
+            });
         getCompletedWords(level)
-        .then((list) => {
-            if(list) {
-                //console.log('Completed:', list);
-                setCompletedWordList(list);
-            }
-        });
+            .then((list) => {
+                if (list) {
+                    console.log('Completed:', list);
+                    setCompletedWordList(list);
+                }
+            });
     }
 
     function handlePress(letter) {
@@ -248,14 +200,22 @@ export default function Game() {
     }
 
     function handleChangeLevel(level) {
-        console.log('handleChangeLevel()', level);
 
         setLevel(level);
+        getLevel(level);
         AsyncStorage.setItem('level', String(level));
+      
+        setDebounce(false);
+    }   
+
+    // for dev & testing purposes
+    async function handleLevelRefresh() {
+        await refreshLevel(level);
+        getLevel(level);
     }
 
     return (
-        <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white' }}>
 
             <View aria-label='infoboard' style={{ width: '100%', paddingTop: insets.top, height: 80 + insets.top, backgroundColor: color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', justifyContent: 'space-evenly' }}>
                 <TouchableOpacity onPress={() => handleChangeLevel(level - 1)}>
@@ -273,6 +233,12 @@ export default function Game() {
                             : <></>
                     }
                 </TouchableOpacity>
+                <TouchableOpacity onPress={async () => await handleLevelRefresh()}>
+                    <FontAwesomeIcon color={'white'} size={32} icon={faArrowsRotate} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigation.navigate({name: 'Settings'})}>
+                    <FontAwesomeIcon color={'white'} size={32} icon={faGear} />
+                </TouchableOpacity>
             </View>
 
             <View aria-label='scoreboard' style={{ flex: 1, width: '100%' }}>
@@ -284,11 +250,11 @@ export default function Game() {
                         <Text style={{ fontSize: 24 }}>Min Score: {minScore}</Text>
                     </View>
                 </View>
-                <View style={{flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center'}}>
+                <View style={{ flex: 0.25, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                     {
                         bestScore >= minScore
-                        ? <View style={{borderWidth: 3, borderColor: 'green', borderRadius: 100, height: 40, width: 40, alignItems: 'center', justifyContent: 'center'}}><FontAwesomeIcon color='green' size={24} icon={faCheck} /></View>
-                        : <></>
+                            ? <View style={{ borderWidth: 3, borderColor: 'green', borderRadius: 100, height: 40, width: 40, alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon color='green' size={24} icon={faCheck} /></View>
+                            : <></>
                     }
                 </View>
                 <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
@@ -300,11 +266,13 @@ export default function Game() {
                         renderItem={({ item }) => <View style={{ margin: 8 }}><Text style={{ fontSize: 24 }}>{item}</Text></View>}
                         keyExtractor={item => item}
                         numColumns={2}
+                        style={{width: '100%'}}
+                        contentContainerStyle={{alignItems: 'center'}}
                     />
                 </View>
             </View>
 
-            <View aria-label='gameboard' style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
+            <View aria-label='gameboard' style={{ flex: 0.10, width: '100%', justifyContent: 'center', flexDirection: 'row', padding: 20 }}>
                 {
                     currentWord.map((letter, index) =>
                         <Tile key={index} letter={letter} valid={valid} />
