@@ -74,6 +74,7 @@ export function Settings() {
     <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
       <SettingCard title={"About"} />
       <SettingCard title={"Themes"} />
+      <SettingCard title={"Achievements"} />
       <SettingCard title={"Reset Everything"} func={resetEverything}/>
     </View>
   );

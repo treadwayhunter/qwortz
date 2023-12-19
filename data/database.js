@@ -7,14 +7,16 @@ import levelData from '../assets/levels.json';
 
 const db = SQLite.openDatabase('test.db'); // give real name later
 /**
- * levels --- id, length, score, best score, min score
+ * levels --- id, length, score, best score, min score, letter1, letter1_pos, letter2, letter2_pos, letter3, letter3_pos
+ * letters 1 through 3 and there positions are the static positions of letters
+ * completed - set to true (1) if completed. When changing the level, query if the level has been completed, if yes then go ahead and change, if not then don't
  */
 function createTables() {
     console.log('called createTables');
     return new Promise((resolve, reject) => {
         db.transaction(tx => {
             tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS levels (id INTEGER PRIMARY KEY, length int, score int, best_score int, min_score int, letter1 TEXT(1), letter1_pos INT, letter2 TEXT(1), letter2_pos INT, letter3 TEXT(1), letter3_pos INT, UNIQUE(id, letter1, letter1_pos), UNIQUE(id, letter2, letter2_pos), UNIQUE(id, letter3, letter3_pos));',
+                'CREATE TABLE IF NOT EXISTS levels (id INTEGER PRIMARY KEY, length int, score int, best_score int, min_score int, letter1 TEXT(1), letter1_pos INT, letter2 TEXT(1), letter2_pos INT, letter3 TEXT(1), letter3_pos INT, completed INT, UNIQUE(id, letter1, letter1_pos), UNIQUE(id, letter2, letter2_pos), UNIQUE(id, letter3, letter3_pos));',
                 [],
                 () => {
                     console.log('Table created: levels');
@@ -69,7 +71,7 @@ export async function initdb() {
 function insertLevel(levelID, length, minScore, letter1, letter1pos, letter2, letter2pos, letter3, letter3pos) {
     db.transaction(tx => {
         tx.executeSql(
-            'INSERT INTO levels (id, length, score, best_score, min_score, letter1, letter1_pos, letter2, letter2_pos, letter3, letter3_pos) VALUES (?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?);',
+            'INSERT INTO levels (id, length, score, best_score, min_score, letter1, letter1_pos, letter2, letter2_pos, letter3, letter3_pos, completed) VALUES (?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, 0);',
             [levelID, length, minScore, letter1, letter1pos, letter2, letter2pos, letter3, letter3pos],
             () => {
                 //console.log('INSERT Success levelID:', levelID);
@@ -273,5 +275,45 @@ export async function hardReset() {
                 resolve();
             }, 5000)
         }, 5000);
+    });
+}
+
+// have this resolve true or false
+export async function checkCompleted(level) {
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                'SELECT completed FROM levels WHERE id = ?;',
+                [level],
+                (_, { rows }) => {
+                    console.log('checkCompleted: ', rows._array);
+                    console.log(rows._array[0].completed)
+                    if(rows._array[0].completed) {
+                        resolve(true);
+                    }
+                    else {
+                        resolve(false);
+                    }
+                },
+                error => {
+                    reject(error);
+                }
+            );
+        });
+    });
+}
+
+export function updateCompleted(level) {
+    db.transaction(tx => {
+        tx.executeSql(
+            'UPDATE levels SET completed = 1 WHERE id = ?;',
+            [level],
+            () => {
+                console.log(`Updated level ${level} to completed`);
+            },
+            error => {
+                console.error('Error updating completed, level: ', level);
+            }
+        );
     });
 }

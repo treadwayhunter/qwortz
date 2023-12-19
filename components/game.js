@@ -1,18 +1,15 @@
-import { faArrowLeft, faArrowRight, faCheck, faArrowsRotate, faGear } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, FlatList } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import dictionary from '../assets/dictionary.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { dropTables, getCompletedWords, getLevelData, initdb, insertCompletedWord, printTabledata, refreshLevel, updateBestScore, updateScore } from '../data/database';
-import { Tile } from './Tile';
-import { Key } from './Key';
-import { BackSpace } from './BackSpace';
-import { useNavigation } from '@react-navigation/native';
+import { checkCompleted, getCompletedWords, getLevelData, insertCompletedWord, refreshLevel, updateBestScore, updateCompleted, updateScore } from '../data/database';
+import { Keyboard } from './Keyboard';
+import { Gameboard } from './Gameboard';
+import { Scoreboard } from './Scoreboard';
+import { GameHeader } from './GameHeader';
 
+// I have too many states in my opinion. I wonder if any can be changed.
 export default function Game() {
-    const insets = useSafeAreaInsets();
     //const [dbReady, setDBReady] = useState(false); // a flag for making sure the database is ready before calling from it
     const [color, setColor] = useState('#094387');
     const [level, setLevel] = useState(0); // valid levels will be greater than 0
@@ -22,14 +19,16 @@ export default function Game() {
     const [bestScore, setBestScore] = useState(0);
     const [minScore, setMinScore] = useState(1);
     const [completedWordList, setCompletedWordList] = useState([]);
+    const [staticPosList, setStaticPosList] = useState([]);
     const [indexStack, setIndexStack] = useState([]);
+    const [completed, setCompleted] = useState(false);
     const [valid, setValid] = useState(''); // if valid is true, the tiles turn green?
-    const [error, setError] = useState('');
+    // to improve the game load times, I could preload the previous and next levels. They could be stored as objects, then split into the various states when loaded. Moving from memory to the game is much faster than an I/O op.
 
-    const navigation = useNavigation();
+    //console.log('COMPLETED TOP: ', completed);
 
-    
     useEffect(() => {
+        console.log('Use Effect called for the one and only time');
         if (!level) {
             try {
                 AsyncStorage.getItem('level')
@@ -38,6 +37,7 @@ export default function Game() {
                             // value doesn't exist or is 0 for some reason
                             AsyncStorage.setItem('level', '1');
                             setLevel(1);
+                            getLevel(1); // I think this is where it's dying
                         }
                         else {
                             setLevel(Number(value)); // when the new level is selected by any method, AsyncStorage.setItem('level', num);
@@ -54,11 +54,12 @@ export default function Game() {
             // getLevelData for this level
             getLevel(level); // this might be slowing it down in some cases
         }
-    }, /*[level]*/ []);
-    
+    }, /*[level]*/[]);
+
 
 
     function getLevel(level) {
+        console.log('GET LEVEL CALLED: ', level);
         getLevelData(level)
             .then((data) => {
                 //console.log('DATA', data);
@@ -67,20 +68,25 @@ export default function Game() {
                 // set this new array as the default array
                 // set the score, bestscore, and minscore states
                 let newDefault = [];
+                let staticPosArr = [];
                 for (let i = 0; i < data.length; i++) {
                     newDefault.push('');
                 }
                 if (data.letter1 && data.letter1_pos || data.letter1_pos === 0) {
                     //console.log('letter 1 and pos');
                     newDefault[data.letter1_pos] = data.letter1;
+                    staticPosArr.push(data.letter1_pos);
                 }
                 if (data.letter2 && data.letter2_pos || data.letter2_pos === 0) {
                     //console.log('letter 2 and pos');
                     newDefault[data.letter2_pos] = data.letter2;
+                    staticPosArr.push(data.letter2_pos);
                 }
                 if (data.letter3 && data.letter3_pos || data.letter3_pos === 0) {
                     //console.log('letter 3 and pos');
                     newDefault[data.letter3_pos] = data.letter3;
+                    staticPosArr.push(data.letter3_pos);
+
                 }
                 //console.log(newDefault);
                 setDefaultWord(newDefault);
@@ -88,6 +94,8 @@ export default function Game() {
                 setScore(data.score);
                 setBestScore(data.best_score);
                 setMinScore(data.min_score);
+                setStaticPosList(staticPosArr);
+                setCompleted(data.completed);
             });
         getCompletedWords(level)
             .then((list) => {
@@ -130,11 +138,18 @@ export default function Game() {
         validateWord(word);
     }
 
+    function addIndexStack(index) {
+        let newIndexStack = [...indexStack, index];
+        newIndexStack.sort();
+        setIndexStack(newIndexStack);
+
+    }
+
+
     function validateWord(word) {
         if (completedWordList.includes(word)) {
             //console.log('Word exists in list... bad');
-            setValid('bad');
-            setError('Cannot use same word twice!');
+            setValid('used');
             return; // word 
         }
         if (dictionary[word]) {
@@ -147,8 +162,7 @@ export default function Game() {
             }, 500);
         }
         else {
-            //console.log('BAD');
-            setValid('bad'); // when backspace occurs, it's no longer 'bad', so do that in the backspace function
+            setValid('bad');
         }
     }
 
@@ -162,19 +176,18 @@ export default function Game() {
             setBestScore(points);
             updateBestScore(level);
         }
+        if (points >= minScore) {
+            updateCompleted(level);
+            setCompleted(true);
+        }
     }
 
     function reset() {
         setCurrentWord(defaultWord);
         setValid('');
         setIndexStack([]);
-        setError('');
     }
 
-    function addIndexStack(index) {
-        let newIndexStack = [...indexStack, index];
-        setIndexStack(newIndexStack);
-    }
 
     // function adds the completed word to memory and database
     function addCompletedWord(word) {
@@ -199,14 +212,51 @@ export default function Game() {
         }
     }
 
-    function handleChangeLevel(level) {
+    function onTilePress(index) {
+        console.log(index);
+        if (staticPosList.includes(index)) {
+            console.log('STATIC POS!!!');
+            return;
+        }
+        else {
+            let newIndexStack = [...indexStack];
+            //console.log(newIndexStack);
+            //console.log('Index stack:', newIndexStack.indexOf(index));
+            let target = newIndexStack.indexOf(index);
+            newIndexStack.splice(target, 1);
+            //console.log(newIndexStack);
+            setIndexStack(newIndexStack);
 
-        setLevel(level);
-        getLevel(level);
-        AsyncStorage.setItem('level', String(level));
-      
-        setDebounce(false);
-    }   
+            let newWord = [...currentWord];
+            newWord[index] = '';
+            setCurrentWord(newWord);
+        }
+        setValid('');
+    }
+
+    async function handleChangeLevel(newLevel) {
+        // debouncing could be stopped if I explicitly track which levels have been completed or not
+        //console.log('check level', 2);
+        console.log('-----------');
+        if (newLevel > level) {
+            const completed = await checkCompleted(newLevel - 1);
+            if (!completed) {
+                console.log(`Level ${level} is NOT completed, cannot proceed to ${newLevel}`);
+                return; // level hasn't even been completed... this is really logic for debouncing
+            }
+            console.log('COMPLETED:', completed);
+        }
+        if (newLevel === 0) {
+            return; // newLevel can't be 0
+        }
+        //console.log('check completed... is it the correct order?');
+        setLevel(newLevel);
+        getLevel(newLevel);
+
+        AsyncStorage.setItem('level', String(newLevel));
+        console.log('-----------');
+
+    }
 
     // for dev & testing purposes
     async function handleLevelRefresh() {
@@ -216,115 +266,10 @@ export default function Game() {
 
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white' }}>
-
-            <View aria-label='infoboard' style={{ width: '100%', paddingTop: insets.top, height: 80 + insets.top, backgroundColor: color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', justifyContent: 'space-evenly' }}>
-                <TouchableOpacity onPress={() => handleChangeLevel(level - 1)}>
-                    {
-                        level <= 1
-                            ? <></>
-                            : <FontAwesomeIcon color={'white'} size={32} icon={faArrowLeft} />
-                    }
-                </TouchableOpacity>
-                <Text style={{ fontSize: 32, color: 'white' }}>Level: {level}</Text>
-                <TouchableOpacity onPress={() => handleChangeLevel(level + 1)}>
-                    {
-                        bestScore >= minScore
-                            ? <FontAwesomeIcon color={'white'} size={32} icon={faArrowRight} />
-                            : <></>
-                    }
-                </TouchableOpacity>
-                <TouchableOpacity onPress={async () => await handleLevelRefresh()}>
-                    <FontAwesomeIcon color={'white'} size={32} icon={faArrowsRotate} />
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => navigation.navigate({name: 'Settings'})}>
-                    <FontAwesomeIcon color={'white'} size={32} icon={faGear} />
-                </TouchableOpacity>
-            </View>
-
-            <View aria-label='scoreboard' style={{ flex: 1, width: '100%' }}>
-                <View style={{ height: 80, width: '100%', flexDirection: 'row', paddingLeft: 20, paddingRight: 20, alignItems: 'center', justifyContent: 'space-evenly' }}>
-                    <View>
-                        <Text style={{ fontSize: 24 }}>Best Score: {bestScore}</Text>
-                    </View>
-                    <View>
-                        <Text style={{ fontSize: 24 }}>Min Score: {minScore}</Text>
-                    </View>
-                </View>
-                <View style={{ flex: 0.25, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                    {
-                        bestScore >= minScore
-                            ? <View style={{ borderWidth: 3, borderColor: 'green', borderRadius: 100, height: 40, width: 40, alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon color='green' size={24} icon={faCheck} /></View>
-                            : <></>
-                    }
-                </View>
-                <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 40 }}>{score}</Text>
-                </View>
-                <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-                    <FlatList
-                        data={completedWordList}
-                        renderItem={({ item }) => <View style={{ margin: 8 }}><Text style={{ fontSize: 24 }}>{item}</Text></View>}
-                        keyExtractor={item => item}
-                        numColumns={2}
-                        style={{width: '100%'}}
-                        contentContainerStyle={{alignItems: 'center'}}
-                    />
-                </View>
-            </View>
-
-            <View aria-label='gameboard' style={{ flex: 0.10, width: '100%', justifyContent: 'center', flexDirection: 'row', padding: 20 }}>
-                {
-                    currentWord.map((letter, index) =>
-                        <Tile key={index} letter={letter} valid={valid} />
-                    )
-                }
-            </View>
-
-            <View aria-label='errorboard' style={{ flex: 0.25, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                {
-                    valid === 'bad'
-                        ? <Text style={{ fontSize: 20 }}>{error}</Text>
-                        : <></>
-                }
-            </View>
-
-            <View aria-label='keyboard' style={{ width: '100%', backgroundColor: color, alignItems: 'center', marginTop: 'auto', paddingBottom: 30, paddingTop: 20 }}>
-                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'center' }}>
-                    <Key letter='Q' onPress={handlePress} />
-                    <Key letter='W' onPress={handlePress} />
-                    <Key letter='E' onPress={handlePress} />
-                    <Key letter='R' onPress={handlePress} />
-                    <Key letter='T' onPress={handlePress} />
-                    <Key letter='Y' onPress={handlePress} />
-                    <Key letter='U' onPress={handlePress} />
-                    <Key letter='I' onPress={handlePress} />
-                    <Key letter='O' onPress={handlePress} />
-                    <Key letter='P' onPress={handlePress} />
-                </View>
-                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'center' }}>
-                    <Key letter='A' onPress={handlePress} />
-                    <Key letter='S' onPress={handlePress} />
-                    <Key letter='D' onPress={handlePress} />
-                    <Key letter='F' onPress={handlePress} />
-                    <Key letter='G' onPress={handlePress} />
-                    <Key letter='H' onPress={handlePress} />
-                    <Key letter='J' onPress={handlePress} />
-                    <Key letter='K' onPress={handlePress} />
-                    <Key letter='L' onPress={handlePress} />
-                </View>
-                <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'center' }}>
-                    <Key letter='Z' onPress={handlePress} />
-                    <Key letter='X' onPress={handlePress} />
-                    <Key letter='C' onPress={handlePress} />
-                    <Key letter='V' onPress={handlePress} />
-                    <Key letter='B' onPress={handlePress} />
-                    <Key letter='N' onPress={handlePress} />
-                    <Key letter='M' onPress={handlePress} />
-                    <View>
-                        <BackSpace onPress={backspace} />
-                    </View>
-                </View>
-            </View>
+            <GameHeader level={level} handleChangeLevel={handleChangeLevel} completed={completed} handleLevelRefresh={handleLevelRefresh} />
+            <Scoreboard score={score} bestScore={bestScore} minScore={minScore} completedWordList={completedWordList} />
+            <Gameboard currentWord={currentWord} valid={valid} onTilePress={onTilePress} />
+            <Keyboard handlePress={handlePress} backspace={backspace} />
         </View>
     );
 }

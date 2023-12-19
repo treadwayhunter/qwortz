@@ -1,6 +1,6 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableHighlight } from "react-native";
 
-export function Tile({ letter, valid }) {
+export function Tile({ letter, valid, index, handlePress }) {
 
     let color = 'white';
     if (valid === 'good') {
@@ -9,20 +9,29 @@ export function Tile({ letter, valid }) {
     else if (valid === 'bad') {
         color = 'red';
     }
+    else if (valid === 'used') {
+        color = '#f8b168';
+    }
+
+
 
     return (
-        <View style={{
+        <TouchableHighlight style={{
             height: 50,
             width: 50,
             borderBottomWidth: 3,
             borderWidth: letter ? 3 : 0,
             borderRadius: letter ? 8 : 0,
-            margin: 1,
+            margin: 3,
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: color
-        }}>
+        }}
+            onPress={() => handlePress(index)}
+            underlayColor={'lightblue'}
+            disabled={letter ? false : true}
+        >
             <Text style={{ fontSize: 32 }}>{letter}</Text>
-        </View>
+        </TouchableHighlight>
     );
 }
