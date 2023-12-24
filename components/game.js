@@ -10,7 +10,6 @@ import { GameHeader } from './GameHeader';
 
 // I have too many states in my opinion. I wonder if any can be changed.
 export default function Game() {
-    //const [dbReady, setDBReady] = useState(false); // a flag for making sure the database is ready before calling from it
     const [color, setColor] = useState('#094387');
     const [level, setLevel] = useState(0); // valid levels will be greater than 0
     const [defaultWord, setDefaultWord] = useState([]); // good for helping reset the current word when needed
@@ -40,6 +39,8 @@ export default function Game() {
                             getLevel(1); // I think this is where it's dying
                         }
                         else {
+                            /*console.log('VALUE:::', value);
+                            AsyncStorage.setItem('level', '1');*/
                             setLevel(Number(value)); // when the new level is selected by any method, AsyncStorage.setItem('level', num);
                             getLevel(value);
                         }
@@ -48,6 +49,13 @@ export default function Game() {
 
             catch (error) {
                 // Error getting item
+                // What happens if the AsyncStorage call fails?
+                // 1) Data fetching errors
+                // 2) Storage limits
+                // 3) JSON parsing errors
+                // 4) Platform-specific issues
+                // 5) Concurrency and timing issues
+                // 6) OUtdated or incompatible version of AsyncStorage
             }
         }
         else {
@@ -124,10 +132,19 @@ export default function Game() {
         }
 
         newWord[cursor] = letter;
-        //console.log(newWord);
         setCurrentWord(newWord);
         addIndexStack(cursor);
+        checkWord(newWord);
 
+    }
+
+    function addIndexStack(index) {
+        let newIndexStack = [...indexStack, index];
+        newIndexStack.sort();
+        setIndexStack(newIndexStack);
+    }
+
+    function checkWord(newWord) {
         for (let i = 0; i < newWord.length; i++) {
             if (newWord[i] === '') {
                 return; // no need to continue the function if there is a blank space
@@ -136,13 +153,6 @@ export default function Game() {
 
         let word = newWord.join('');
         validateWord(word);
-    }
-
-    function addIndexStack(index) {
-        let newIndexStack = [...indexStack, index];
-        newIndexStack.sort();
-        setIndexStack(newIndexStack);
-
     }
 
 
@@ -263,12 +273,12 @@ export default function Game() {
         await refreshLevel(level);
         getLevel(level);
     }
-
+    
     return (
         <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white' }}>
             <GameHeader level={level} handleChangeLevel={handleChangeLevel} completed={completed} handleLevelRefresh={handleLevelRefresh} />
             <Scoreboard score={score} bestScore={bestScore} minScore={minScore} completedWordList={completedWordList} />
-            <Gameboard currentWord={currentWord} valid={valid} onTilePress={onTilePress} />
+            <Gameboard currentWord={currentWord} valid={valid} onTilePress={onTilePress} staticPosList={staticPosList} />
             <Keyboard handlePress={handlePress} backspace={backspace} />
         </View>
     );

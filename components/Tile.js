@@ -1,6 +1,6 @@
 import { View, Text, TouchableHighlight } from "react-native";
 
-export function Tile({ letter, valid, index, handlePress }) {
+export function Tile({ letter, valid, index, handlePress, locked }) {
 
     let color = 'white';
     if (valid === 'good') {
@@ -16,6 +16,7 @@ export function Tile({ letter, valid, index, handlePress }) {
 
 
     return (
+   
         <TouchableHighlight style={{
             height: 50,
             width: 50,
@@ -33,5 +34,7 @@ export function Tile({ letter, valid, index, handlePress }) {
         >
             <Text style={{ fontSize: 32 }}>{letter}</Text>
         </TouchableHighlight>
+      
+  
     );
 }

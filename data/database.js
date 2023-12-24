@@ -317,3 +317,19 @@ export function updateCompleted(level) {
         );
     });
 }
+
+export async function getNumLevels() {
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                'SELECT COUNT(*) AS count FROM levels WHERE completed = 1;',
+                [],
+                (_, { rows }) => {
+                    console.log('Count',rows._array[0].count);
+                    resolve(rows._array[0].count);
+                },
+                error => reject(error)
+            );
+        });
+    });
+}

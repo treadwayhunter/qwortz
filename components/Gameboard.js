@@ -1,11 +1,11 @@
 import { View } from 'react-native';
 import { Tile } from './Tile';
 
-export function Gameboard({ currentWord, valid, onTilePress }) {
+export function Gameboard({ currentWord, valid, onTilePress, staticPosList }) {
     return (
         <View aria-label='gameboard' style={{ flex: 0.1, width: '100%', justifyContent: 'center', flexDirection: 'row', padding: 20 }}>
             {
-                currentWord.map((letter, index) => <Tile key={index} letter={letter} valid={valid} index={index} handlePress={onTilePress} />)
+                currentWord.map((letter, index) => <Tile key={index} letter={letter} valid={valid} index={index} handlePress={onTilePress} locked={staticPosList.includes(index)} />)
             }
         </View>
     );
