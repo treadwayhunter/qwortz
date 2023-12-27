@@ -14,7 +14,7 @@ export function GameHeader({ level, handleChangeLevel, completed, handleLevelRef
     return (
         <View aria-label='Gameheader' style={{ width: '100%', paddingTop: insets.top, height: 80 + insets.top, backgroundColor: color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
             <View style={{ height: '100%', width: '20%', alignItems: 'center', justifyContent: 'center' }}>
-                <TouchableOpacity onPress={() => console.log('Home button')}>
+                <TouchableOpacity onPress={() => navigation.navigate({name: 'Home'})}>
                     <FontAwesomeIcon color='white' size={32} icon={faHouse} />
                 </TouchableOpacity>
             </View>
@@ -28,15 +28,15 @@ export function GameHeader({ level, handleChangeLevel, completed, handleLevelRef
                     }
                 </View>
                 <View style={{ height: '100%', width: '50%', alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
-                    <TouchableOpacity style={{ 
-                        height: '100%', 
-                        width: '100%', 
-                        justifyContent: 'center', 
-                        alignItems: 'center', 
-                        flexDirection: 'row' 
+                    <TouchableOpacity style={{
+                        height: '100%',
+                        width: '100%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        flexDirection: 'row'
                     }}
-                        onPress={() => navigation.navigate({name: 'Levels'})}   
-                        >
+                        onPress={() => navigation.navigate({ name: 'Levels' })}
+                    >
                         <Text style={{ fontSize: 32, color: 'white' }}>{level}</Text>
                         <FontAwesomeIcon icon={faCaretDown} color='white' />
                     </TouchableOpacity>

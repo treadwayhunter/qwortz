@@ -8,7 +8,9 @@ import { dropTables } from './data/database';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { Settings, SettingsHeader } from './components/Settings';
-import { LevelList } from './components/LevelList';
+import { LevelList, LevelListHeader } from './components/LevelList';
+import { GameContextProvider } from './components/contexts/GameContext';
+import Home from './components/Home';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,9 +18,6 @@ const Stack = createNativeStackNavigator();
 
 export default function App() {
   const [setupCheck, setSetupCheck] = useState(false);
-  // a function for performing initial setup on a page.
-
-  //dropTables();
 
   function handleSetup() {
     setSetupCheck(true);
@@ -32,23 +31,19 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator>
-          <Stack.Screen options={{ headerShown: false }} name="Game" component={Game} />
-          <Stack.Screen options={{ header:  SettingsHeader}} name="Settings" component={Settings} />
-          <Stack.Screen options={{ headerShown: true }} name="Levels" component={LevelList} />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <GameContextProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ animation: 'fade' }}>
+            <Stack.Screen options={{ headerShown: false }} name="Home" component={Home} />
+            <Stack.Screen options={{ headerShown: false }} name="Game" component={Game} />
+            <Stack.Screen options={{ header: SettingsHeader, animation: 'default' }} name="Settings" component={Settings} />
+            <Stack.Screen options={{ header: LevelListHeader, animation: 'default' }} name="Levels" component={LevelList} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </GameContextProvider>
+
     </SafeAreaProvider>
   );
 
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

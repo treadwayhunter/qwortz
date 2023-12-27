@@ -18,7 +18,7 @@ export function Key({ letter, onPress }) {
                 justifyContent: 'center',
                 backgroundColor: 'white'
             }}
-            underlayColor={'brown'}
+            underlayColor={'#874d09'}
             onPress={() => onPress(letter)}
         >
             <Text style={{ fontSize: width / 1.5 }}>{letter}</Text>

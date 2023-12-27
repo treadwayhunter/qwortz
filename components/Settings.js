@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { View, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hardReset } from '../data/database';
+import { useGameContext } from './contexts/GameContext';
 
 export function SettingsHeader() {
   const insets = useSafeAreaInsets();
@@ -10,29 +11,29 @@ export function SettingsHeader() {
   const navigation = useNavigation();
 
   return (
-    <View style={{ 
-      paddingTop: insets.top, 
-      paddingLeft: 20, 
-      paddingRight: 20, 
-      height: 80 + insets.top, 
-      width: '100%', 
+    <View style={{
+      paddingTop: insets.top,
+      paddingLeft: 20,
+      paddingRight: 20,
+      height: 80 + insets.top,
+      width: '100%',
       backgroundColor: color,
       justifyContent: 'space-between',
       alignItems: 'center',
-      flexDirection: 'row' 
+      flexDirection: 'row'
     }}>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={{
-          height: 50, 
-          width: 50, 
-          alignItems: 'center', 
+          height: 50,
+          width: 50,
+          alignItems: 'center',
           justifyContent: 'center'
         }}
         onPress={() => navigation.goBack()}
       >
-        <Text style={{fontSize: 24, color: 'white'}}>Back</Text>
+        <Text style={{ fontSize: 24, color: 'white' }}>Back</Text>
       </TouchableOpacity>
-      <View><Text style={{fontSize: 32, color: 'white'}}>Settings</Text></View>
+      <View><Text style={{ fontSize: 32, color: 'white' }}>Settings</Text></View>
       <View></View>
     </View>
   );
@@ -51,8 +52,8 @@ function SettingCard({ title, func }) {
         onPress={() => typeof func === 'function' ? func() : console.log('No function', title)}
         underlayColor={color}
       >
-        <View style={{marginLeft: 20}}>
-          <Text style={{fontSize: 24}}>{title}</Text>
+        <View style={{ marginLeft: 20 }}>
+          <Text style={{ fontSize: 24 }}>{title}</Text>
         </View>
       </TouchableHighlight>
     </View>
@@ -62,11 +63,13 @@ function SettingCard({ title, func }) {
 export function Settings() {
 
   const navigation = useNavigation();
+  const {gameState, gameDispatch} = useGameContext();
 
   function resetEverything() {
     hardReset()
       .then(() => {
-        navigation.navigate({name: 'Game'});
+        gameDispatch({type: 'CHANGE_LEVEL', payload: 1});
+        navigation.navigate({ name: 'Game' });
       });
   }
 
@@ -75,7 +78,7 @@ export function Settings() {
       <SettingCard title={"About"} />
       <SettingCard title={"Themes"} />
       <SettingCard title={"Achievements"} />
-      <SettingCard title={"Reset Everything"} func={resetEverything}/>
+      <SettingCard title={"Reset Everything"} func={resetEverything} />
     </View>
   );
 }

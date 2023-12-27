@@ -29,7 +29,7 @@ export function Tile({ letter, valid, index, handlePress, locked }) {
             backgroundColor: color
         }}
             onPress={() => handlePress(index)}
-            underlayColor={'lightblue'}
+            underlayColor={'#874d09'}
             disabled={letter ? false : true}
         >
             <Text style={{ fontSize: 32 }}>{letter}</Text>

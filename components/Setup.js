@@ -3,6 +3,11 @@ import { Text, View, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initdb } from '../data/database';
 
+/**Todo
+ * 
+ * Include Achievement initialization in something. Maybe the initdb function
+ */
+
 export function Setup({ handleSetup }) {
 
   // a function that changes the state

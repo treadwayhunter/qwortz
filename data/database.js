@@ -279,6 +279,7 @@ export async function hardReset() {
 }
 
 // have this resolve true or false
+// should I have this check the level? If level === 1, then just resolve true
 export async function checkCompleted(level) {
     return new Promise((resolve, reject) => {
         db.transaction(tx => {
@@ -286,6 +287,7 @@ export async function checkCompleted(level) {
                 'SELECT completed FROM levels WHERE id = ?;',
                 [level],
                 (_, { rows }) => {
+                    console.log('checkCompleted level: ', level);
                     console.log('checkCompleted: ', rows._array);
                     console.log(rows._array[0].completed)
                     if(rows._array[0].completed) {
@@ -325,8 +327,24 @@ export async function getNumLevels() {
                 'SELECT COUNT(*) AS count FROM levels WHERE completed = 1;',
                 [],
                 (_, { rows }) => {
-                    console.log('Count',rows._array[0].count);
+                    //console.log('Count',rows._array[0].count);
                     resolve(rows._array[0].count);
+                },
+                error => reject(error)
+            );
+        });
+    });
+}
+
+export async function getLevelDataBrief() {
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                'SELECT id, score, min_score, completed FROM levels;',
+                [],
+                (_, { rows }) => {
+                    //console.log('BRIEF: ', rows._array);  
+                    resolve(rows._array);                  
                 },
                 error => reject(error)
             );

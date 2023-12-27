@@ -282,7 +282,7 @@
             "letter1": "T",
             "letter1Pos": 0,
             "letter2": "H",
-            "letter2Pos": 3,
+            "letter2Pos": 4,
             "letter3": null,
             "letter3Pos": null
         },
@@ -367,7 +367,7 @@
             "id" : 34, 
             "length": 5,
             "minScore": 10,
-            "letter1": "Y",
+            "letter1": "P",
             "letter1Pos": 4,
             "letter2": null,
             "letter2Pos": null,
@@ -377,7 +377,7 @@
         {
             "id" : 35, 
             "length": 5,
-            "minScore": 10,
+            "minScore": 5,
             "letter1": "S",
             "letter1Pos": 0,
             "letter2": "G",
