@@ -4,15 +4,17 @@ import { useState } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useThemeContext } from './contexts/ThemeContext';
 
 export function GameHeader({ level, handleChangeLevel, completed, handleLevelRefresh }) {
     const insets = useSafeAreaInsets();
+    const { theme, setTheme } = useThemeContext();
 
     const [color, setColor] = useState('#094387');
     const navigation = useNavigation();
 
     return (
-        <View aria-label='Gameheader' style={{ width: '100%', paddingTop: insets.top, height: 80 + insets.top, backgroundColor: color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
+        <View aria-label='Gameheader' style={{ width: '100%', paddingTop: insets.top, height: 80 + insets.top, backgroundColor: theme === 'light' ? '#094387' : '#121212', alignItems: 'center', justifyContent: 'center', flexDirection: 'row' }}>
             <View style={{ height: '100%', width: '20%', alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity onPress={() => navigation.navigate({name: 'Home'})}>
                     <FontAwesomeIcon color='white' size={32} icon={faHouse} />

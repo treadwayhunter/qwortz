@@ -16,7 +16,8 @@ const initialState = {
     staticPosList: [],
     indexStack: [],
     completed: false,
-    valid: ''
+    valid: '',
+    popup: false // this is to track whether the popup should be displayed or not.
 };
 
 function reducer(state, action) {
@@ -32,6 +33,8 @@ function reducer(state, action) {
         case 'UPDATE_INDEX_STACK': return {...state, indexStack: action.payload};
         case 'SET_COMPLETED': return {...state, completed: action.payload};
         case 'UPDATE_VALID': return {...state, valid: action.payload};
+        case 'SHOW_POPUP': return {...state, popup: true};
+        case 'HIDE_POPUP': return {...state, popup: false};
     }
 }
 
@@ -121,7 +124,7 @@ export function GameContextProvider({children}) {
                 gameDispatch({type: 'SET_MIN_SCORE', payload: data.min_score});
                 gameDispatch({type: 'SET_STATIC_POS_LIST', payload: staticPosArr});
                 gameDispatch({type: 'SET_COMPLETED', payload: data.completed});
-
+                gameDispatch({type: 'HIDE_POPUP'});
             });
         getCompletedWords(level)
             .then((list) => {

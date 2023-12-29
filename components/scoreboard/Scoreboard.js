@@ -1,40 +1,29 @@
 import { faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { View, Text, FlatList } from 'react-native';
+import { View, Text } from 'react-native';
 import { ProgressBar } from './ProgressBar';
-
+import { useThemeContext } from '../contexts/ThemeContext';
+import { CompletedWordList } from './CompletedWordList';
+import { useGameContext } from '../contexts/GameContext';
+import { ScoreInfo } from './ScoreInfo';
 // best score, min score, score, completedWordList
-export function Scoreboard({ score, bestScore, minScore, completedWordList }) {
+export function Scoreboard() {
+    const { theme, setTheme } = useThemeContext();
+    const { gameState, gameDispatch } = useGameContext();
+
     return (
-        <View aria-label='scoreboard' style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-            <View style={{ height: 80, width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-evenly' }}>
-                <View style={{ height: '100%', width: '50%', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 24 }}>Best</Text>
-                    <Text style={{ fontSize: 24 }}>{bestScore}</Text>
-                </View>
-                <View style={{ height: '100%', width: '50%', alignItems: 'center', justifyContent: 'center' }}>
-                    <Text style={{ fontSize: 24 }}>Pass</Text>
-                    <Text style={{ fontSize: 24 }}>{minScore}</Text>
-                </View>
-            </View>
-            <ProgressBar score={score} minScore={minScore} />
+        <View aria-label='scoreboard' style={{ flex: 1, width: '100%', alignItems: 'center', backgroundColor: theme === 'light' ? '#fff' : '#121212' }}>
+            <ScoreInfo />
+            <ProgressBar score={gameState.score} minScore={gameState.minScore} />
             <View style={{ flex: 0.25, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                {bestScore >= minScore
+                {gameState.bestScore >= gameState.minScore
                     ? <View style={{ borderWidth: 3, borderColor: 'green', borderRadius: 100, height: 40, width: 40, alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon color='green' size={24} icon={faCheck} /></View>
                     : <></>}
             </View>
             <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 40 }}>{score}</Text>
+                <Text style={{ fontSize: 40, color: theme === 'light' ? '#000' : '#fff' }}>{gameState.score}</Text>
             </View>
-            <View style={{ flex: 1, width: '100%', alignItems: 'center' }}>
-                <FlatList
-                    data={completedWordList}
-                    renderItem={({ item }) => <View style={{ margin: 8 }}><Text style={{ fontSize: 24 }}>{item}</Text></View>}
-                    keyExtractor={item => item}
-                    numColumns={2}
-                    style={{ width: '100%' }}
-                    contentContainerStyle={{ alignItems: 'center' }} />
-            </View>
+            <CompletedWordList />
         </View>
     );
 }

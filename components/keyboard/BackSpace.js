@@ -1,8 +1,11 @@
 import { faLeftLong } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { TouchableHighlight, Dimensions } from 'react-native';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 export function BackSpace({ onPress }) {
+    const { theme, setTheme } = useThemeContext();
+
     const screenWidth = Dimensions.get('window').width;
     const screenHeight = Dimensions.get('window').height;
 
@@ -18,13 +21,13 @@ export function BackSpace({ onPress }) {
                 margin: 1,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: 'white',
+                backgroundColor: theme === 'light' ? '#fff' : '#098287',
                 position: 'absolute',
             }}
-            underlayColor={'brown'}
+            underlayColor={'#874d09'}
             onPress={onPress}
         >
-            <FontAwesomeIcon size={32} icon={faLeftLong} />
+            <FontAwesomeIcon size={32} icon={faLeftLong} color={theme === 'light' ? '#000' : '#fff'} />
         </TouchableHighlight>
     );
 }

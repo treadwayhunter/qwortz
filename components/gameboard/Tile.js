@@ -1,16 +1,20 @@
 import { View, Text, TouchableHighlight } from "react-native";
+import { useThemeContext } from "../contexts/ThemeContext";
 
 export function Tile({ letter, valid, index, handlePress, locked }) {
 
-    let color = 'white';
+    const { theme, setTheme } = useThemeContext();
+
+
+    let color = theme === 'light' ? '#fff' : letter ? '#2c2c2c' : '#121212';
     if (valid === 'good') {
-        color = 'lightgreen';
+        color = '#0b9f5b';
     }
     else if (valid === 'bad') {
-        color = 'red';
+        color = '#b7130c';
     }
     else if (valid === 'used') {
-        color = '#f8b168';
+        color = '#df9f5d';
     }
 
 
@@ -23,6 +27,7 @@ export function Tile({ letter, valid, index, handlePress, locked }) {
             borderBottomWidth: 3,
             borderWidth: letter ? 3 : 0,
             borderRadius: letter ? 8 : 0,
+            borderColor: theme === 'light' ? '#000' : '#098287',
             margin: 3,
             alignItems: 'center',
             justifyContent: 'center',
@@ -32,7 +37,7 @@ export function Tile({ letter, valid, index, handlePress, locked }) {
             underlayColor={'#874d09'}
             disabled={letter ? false : true}
         >
-            <Text style={{ fontSize: 32 }}>{letter}</Text>
+            <Text style={{ fontSize: 32, color: theme === 'light' ? '#000' : '#fff' }}>{letter}</Text>
         </TouchableHighlight>
       
   

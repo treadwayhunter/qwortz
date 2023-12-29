@@ -43,6 +43,7 @@ function createCompletedTable() {
                 [],
                 () => {
                     console.log('completedWords table created successfully');
+                    resolve(true);
                 },
                 error => {
                     console.error('Error creating table: completedWords', error);
@@ -282,26 +283,31 @@ export async function hardReset() {
 // should I have this check the level? If level === 1, then just resolve true
 export async function checkCompleted(level) {
     return new Promise((resolve, reject) => {
-        db.transaction(tx => {
-            tx.executeSql(
-                'SELECT completed FROM levels WHERE id = ?;',
-                [level],
-                (_, { rows }) => {
-                    console.log('checkCompleted level: ', level);
-                    console.log('checkCompleted: ', rows._array);
-                    console.log(rows._array[0].completed)
-                    if(rows._array[0].completed) {
-                        resolve(true);
+        if(level < 1) { // this should fix the case where 0 is called once
+            resolve(true);
+        }
+        else {
+            db.transaction(tx => {
+                tx.executeSql(
+                    'SELECT completed FROM levels WHERE id = ?;',
+                    [level],
+                    (_, { rows }) => {
+                        console.log('checkCompleted level: ', level);
+                        console.log('checkCompleted: ', rows._array);
+                        console.log(rows._array[0].completed)
+                        if(rows._array[0].completed) {
+                            resolve(true);
+                        }
+                        else {
+                            resolve(false);
+                        }
+                    },
+                    error => {
+                        reject(error);
                     }
-                    else {
-                        resolve(false);
-                    }
-                },
-                error => {
-                    reject(error);
-                }
-            );
-        });
+                );
+            });
+        }
     });
 }
 

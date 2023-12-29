@@ -1,6 +1,4 @@
-import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import dictionary from '../assets/dictionary.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkCompleted, insertCompletedWord, refreshLevel, updateBestScore, updateCompleted, updateScore } from '../data/database';
 import { Keyboard } from './keyboard/Keyboard';
@@ -8,14 +6,11 @@ import { Gameboard } from './gameboard/Gameboard';
 import { Scoreboard } from './scoreboard/Scoreboard';
 import { GameHeader } from './GameHeader';
 import { useGameContext } from './contexts/GameContext';
+import { Popup } from './Popup';
 
 // I have too many states in my opinion. I wonder if any can be changed.
 export default function Game() {
-    const [color, setColor] = useState('#094387');
     const {gameState, gameDispatch} = useGameContext();
-
-    // if for some reason the VALID colors didn't auto clear, this should force it to do so
-
 
     function onTilePress(index) {
         console.log(index);
@@ -25,20 +20,13 @@ export default function Game() {
         }
         else {
             let newIndexStack = [...gameState.indexStack];
-            //console.log(newIndexStack);
-            //console.log('Index stack:', newIndexStack.indexOf(index));
             let target = newIndexStack.indexOf(index);
             newIndexStack.splice(target, 1);
-            //console.log(newIndexStack);
-            //setIndexStack(newIndexStack);
             gameDispatch({type: 'UPDATE_INDEX_STACK', payload: newIndexStack});
-
             let newWord = [...gameState.currentWord];
             newWord[index] = '';
-            //setCurrentWord(newWord);
             gameDispatch({type: 'SET_CURRENT_WORD', payload: newWord});
         }
-        //setValid('');
         gameDispatch({type: 'UPDATE_VALID', payload: ''});
 
     }
@@ -63,15 +51,20 @@ export default function Game() {
     // for dev & testing purposes
     async function handleLevelRefresh() {
         await refreshLevel(level);
-        // getLevel(level); how do I force the context to refresh?
     }
     
     return (
-        <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: 'white' }}>
+        <>
+        <View style={{ flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
             <GameHeader level={gameState.level} handleChangeLevel={handleChangeLevel} completed={gameState.completed} handleLevelRefresh={handleLevelRefresh} />
-            <Scoreboard score={gameState.score} bestScore={gameState.bestScore} minScore={gameState.minScore} completedWordList={gameState.completedWordList} />
+            <Scoreboard />
             <Gameboard currentWord={gameState.currentWord} valid={gameState.valid} onTilePress={onTilePress} staticPosList={gameState.staticPosList} />
             <Keyboard />
+
         </View>
+        {
+            gameState.popup ? <Popup type={'normal'} /> : <></>
+        }
+        </>
     );
 }

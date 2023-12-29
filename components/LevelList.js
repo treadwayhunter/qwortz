@@ -7,23 +7,34 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { useGameContext } from "./contexts/GameContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useThemeContext } from "./contexts/ThemeContext";
 
 export function LevelListHeader() {
     const insets = useSafeAreaInsets();
     const [color, setColor] = useState('#094387');
     const navigation = useNavigation();
-
+    //#098287
+    const { theme, setTheme } = useThemeContext();
     return (
-        <View aria-label='LevelListHeader' style={{width: '100%', paddingTop: insets.top, height: 80 + insets.top, backgroundColor: color, alignItems: 'center', justifyContent: 'center', flexDirection: 'row'}}>
-            <View style={{height: '100%', width: '25%', alignItems: 'center', justifyContent: 'center'}}>
+        <View aria-label='LevelListHeader'
+            style={{
+                width: '100%',
+                paddingTop: insets.top,
+                height: 80 + insets.top,
+                backgroundColor: theme === 'light' ? '#094387' : '#121212',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row'
+            }}>
+            <View style={{ height: '100%', width: '25%', alignItems: 'center', justifyContent: 'center' }}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <FontAwesomeIcon icon={faArrowLeft} size={32} color={'white'} />
                 </TouchableOpacity>
             </View>
-            <View style={{height: '100%', width: '50%', alignItems: 'center', justifyContent: 'center'}}>
-                <Text style={{color: 'white', fontSize: 32}}>Levels</Text>
+            <View style={{ height: '100%', width: '50%', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ color: 'white', fontSize: 32 }}>Levels</Text>
             </View>
-            <View style={{height: '100%', width: '25%'}}></View>
+            <View style={{ height: '100%', width: '25%' }}></View>
 
         </View>
     );
@@ -31,11 +42,19 @@ export function LevelListHeader() {
 
 function LevelCardInfo({ id, score, minScore, completed }) {
     //console.log(minScore);
+    const { theme, setTheme } = useThemeContext();
+
     return (
-        <View style={{ flex: 1, width: "100%", flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <View style={{
+            flex: 1,
+            width: "100%",
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+        }}>
             <View>
-                <Text>Level: {id}</Text>
-                <Text>Score: {score}/{minScore}</Text>
+                <Text style={{ color: theme === 'light' ? '#000' : '#fff' }}>Level: {id}</Text>
+                <Text style={{ color: theme === 'light' ? '#000' : '#fff' }}>Score: {score}/{minScore}</Text>
             </View>
             {
                 completed ? <View style={{ borderRadius: 100, borderWidth: 2, borderColor: 'green', padding: 2, alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon color="green" icon={faCheck} /></View> : <></>
@@ -48,6 +67,7 @@ function LevelCard({ id, score, minScore, completed }) {
 
     const navigation = useNavigation();
     const { gameState, gameDispatch } = useGameContext();
+    const { theme, setTheme } = useThemeContext();
 
     function handlePress() {
         console.log('NAVIGATE TO', id);
@@ -75,11 +95,12 @@ function LevelCard({ id, score, minScore, completed }) {
             style={{
                 height: 60,
                 width: '100%',
-                borderTopWidth: 1,
                 borderBottomWidth: 1,
                 justifyContent: 'center',
                 paddingLeft: 30,
-                paddingRight: 30
+                paddingRight: 30,
+                backgroundColor: theme === 'light' ? '#fff' : '#2c2c2c',
+                borderColor: theme === 'light' ? '#000' : '#fff'
             }}
             underlayColor={'#098287'}
         >
@@ -94,6 +115,7 @@ export function LevelList() {
     // 
 
     const [levels, setLevels] = useState([]);
+    const { theme, setTheme } = useThemeContext();
 
     useEffect(() => {
 
@@ -105,7 +127,7 @@ export function LevelList() {
 
     // should probably be a flatlist instead of map
     return (
-        <View style={{ flex: 1, width: '100%' }}>
+        <View style={{ flex: 1, width: '100%', backgroundColor: theme === 'light' ? '#fff' : '#121212' }}>
             <FlatList
                 data={levels}
                 renderItem={({ item }) => <LevelCard id={item["id"]} score={item["score"]} minScore={item["min_score"]} completed={item["completed"]} />}
