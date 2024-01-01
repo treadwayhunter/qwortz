@@ -6,10 +6,10 @@ import { useGameContext } from '../contexts/GameContext';
 import dictionary from '../../assets/dictionary.json';
 import { checkCompleted, insertCompletedWord, refreshLevel, updateBestScore, updateCompleted, updateScore } from '../../data/database';
 import { useThemeContext } from '../contexts/ThemeContext';
+import validateWord from '../../utils/ValidateWord';
+import checkWordArray from '../../utils/CheckWordArray';
 
 export function Keyboard() {
-    const [color, setColor] = useState('#094387');
-
     const { gameState, gameDispatch } = useGameContext();
     const { theme, setTheme } = useThemeContext();
 
@@ -28,7 +28,7 @@ export function Keyboard() {
             cursor++;
         }
         if (cursor >= newWord.length) {
-            // then every letter is good
+            // then every letter is good, so do nothing
             return;
         }
 
@@ -39,41 +39,29 @@ export function Keyboard() {
     }
 
     function checkWord(newWord) {
-        for (let i = 0; i < newWord.length; i++) {
-            if (newWord[i] === '') {
-                gameDispatch({ type: 'UPDATE_VALID', payload: '' });
-                return; // no need to continue the function if there is a blank space
+        let word = checkWordArray(newWord);
+
+        if (word) {
+            if (gameState.completedWordList.includes(word)) {
+                // the word exists in the completed word list, so nothing else needs to occur
+                gameDispatch({ type: 'UPDATE_VALID', payload: 'used' });
+            }
+            else {
+                if (validateWord(word)) {
+                    gameDispatch({ type: 'UPDATE_VALID', payload: 'good' });
+                    setTimeout(() => {
+                        incScore();
+                        addCompletedWord(word);
+                        resetGameBoard();
+                    }, 500);
+                }
+                else {
+                    gameDispatch({ type: 'UPDATE_VALID', payload: 'bad' });
+                }
             }
         }
-
-        // each index in the array is a letter, so proceed to validation
-        let word = newWord.join('');
-        validateWord(word);
     }
 
-    // I might want to move this to a different file
-    function validateWord(word) {
-        if (gameState.completedWordList.includes(word)) {
-            //console.log('Word exists in list... bad');
-            //setValid('used');
-            gameDispatch({ type: 'UPDATE_VALID', payload: 'used' });
-            return; // word 
-        }
-        if (dictionary[word]) {
-            //console.log('VALID WORD');
-            //setValid('good');
-            gameDispatch({ type: 'UPDATE_VALID', payload: 'good' });
-            setTimeout(() => {
-                incScore();
-                addCompletedWord(word);
-                reset();
-            }, 500);
-        }
-        else {
-            //setValid('bad');
-            gameDispatch({ type: 'UPDATE_VALID', payload: 'bad' });
-        }
-    }
 
     function addIndexStack(index) {
         let newIndexStack = [...gameState.indexStack, index];
@@ -99,30 +87,23 @@ export function Keyboard() {
             // when this occurs for the first time
             // make the popup show up?
             setTimeout(() => {
-                gameDispatch({ type: 'SHOW_POPUP'});
+                gameDispatch({ type: 'SHOW_POPUP' });
             }, 500);
-            
         }
+        // if points === gameState.proScore
     }
 
-    function reset() {
-        //setCurrentWord(defaultWord);
-        //console.log('RESET called');
-        //console.log('DEFAULT: ', gameState.defaultWord);
-        //console.log('CURRENT: ', gameState.currentWord);
+    function resetGameBoard() {
         const resetWord = [...gameState.defaultWord];
         gameDispatch({ type: 'SET_CURRENT_WORD', payload: resetWord });
-        //setValid('');
         gameDispatch({ type: 'UPDATE_VALID', payload: '' });
-        //setIndexStack([]);
         gameDispatch({ type: 'UPDATE_INDEX_STACK', payload: [] });
     }
 
 
     // function adds the completed word to memory and database
     function addCompletedWord(word) {
-        let newWordList = [word, ...gameState.completedWordList];
-        //setCompletedWordList(newWordList); // add to wordlist in memory
+        let newWordList = [word, ...gameState.completedWordList]; // creates a new word list with the new word at the front
         gameDispatch({ type: 'UPDATE_COMPLETED_LIST', payload: newWordList });
         insertCompletedWord(gameState.level, word); // add to wordlist in persistent database
     }
@@ -130,18 +111,14 @@ export function Keyboard() {
     function backspace() {
         if (gameState.valid !== 'good') { // disables the backspace when valid is true for the split second it is
             if (gameState.indexStack.length > 0) {
-                //console.log('backspace');
                 let newIndexStack = [...gameState.indexStack];
                 const index = newIndexStack.pop();
 
                 let newWord = [...gameState.currentWord];
                 newWord[index] = '';
-                //setCurrentWord(newWord);
                 gameDispatch({ type: 'SET_CURRENT_WORD', payload: newWord });
-                //setIndexStack(newIndexStack);
                 gameDispatch({ type: 'UPDATE_INDEX_STACK', payload: newIndexStack });
             }
-            //setValid('');
             gameDispatch({ type: 'UPDATE_VALID', payload: '' });
         }
     }

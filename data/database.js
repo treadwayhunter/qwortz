@@ -3,7 +3,7 @@ import * as SQLite from 'expo-sqlite';
 //import Papa from 'papaparse';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import levelData from '../assets/levels.json';
-
+import achievementData from '../assets/achievements.json';
 
 const db = SQLite.openDatabase('test.db'); // give real name later
 /**
@@ -11,6 +11,8 @@ const db = SQLite.openDatabase('test.db'); // give real name later
  * letters 1 through 3 and there positions are the static positions of letters
  * completed - set to true (1) if completed. When changing the level, query if the level has been completed, if yes then go ahead and change, if not then don't
  */
+
+// there probably need to be additional uniqueness to this table, but be careful
 function createTables() {
     console.log('called createTables');
     return new Promise((resolve, reject) => {
@@ -21,6 +23,7 @@ function createTables() {
                 () => {
                     console.log('Table created: levels');
                     createCompletedTable(); // this can occur async. It won't bother anything
+                    createAchievementTable();
                     resolve();
                 },
                 error => {
@@ -55,6 +58,25 @@ function createCompletedTable() {
 
 }
 
+function createAchievementTable() {
+    return new Promise((resolve, reject) => {
+        db.transaction(tx => {
+            tx.executeSql(
+                'CREATE TABLE IF NOT EXISTS achievements (id INTEGER PRIMARY KEY, title TEXT(32), desc TEXT(128), achieved INT, date TEXT(32), UNIQUE(title));',
+                [],
+                () => {
+                    console.log('Achievements table created');
+                    resolve(true);
+                },
+                error => {
+                    console.error('Error creating table: achievements', error);
+                    reject(error);
+                }
+            );
+        });
+    });
+}
+
 // I removed the staticLetters table... I'm so glad
 export async function initdb() {
 
@@ -65,6 +87,10 @@ export async function initdb() {
         //console.log(row.id, row.length, row.minScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
         insertLevel(row.id, row.length, row.minScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
     });
+
+    /*achievementData.data.forEach((row) => {
+        insertAchievement(row.id, row.title, row.desc, row.achieved, row.date);
+    });*/
 
 }
 
@@ -83,6 +109,21 @@ function insertLevel(levelID, length, minScore, letter1, letter1pos, letter2, le
         );
     });
 }
+
+/*function insertAchievement(id, title, desc, achieved, date) {
+    db.transaction(tx => {
+        tx.executeSql(
+            'INSERT INTO achievements (id, title, desc, achieved, date) VALUES (?, ?, ?, ?, ?);',
+            [id, title, desc, achieved, date],
+            () => {
+                console.log('INSERTED LEVEL:', id);
+            },
+            error => {
+                console.log('ERROR INSERT ACHIEVEMENT:',id);
+            }
+        );
+    });
+}*/
 
 export function printTabledata() {
     db.transaction(tx => {
