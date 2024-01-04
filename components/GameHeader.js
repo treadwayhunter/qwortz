@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useThemeContext } from './contexts/ThemeContext';
 import { useGameContext } from './contexts/GameContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { checkCompleted } from '../data/database';
 
 export function GameHeader() {
     const insets = useSafeAreaInsets();

@@ -18,7 +18,7 @@ function createTables() {
     return new Promise((resolve, reject) => {
         db.transaction(tx => {
             tx.executeSql(
-                'CREATE TABLE IF NOT EXISTS levels (id INTEGER PRIMARY KEY, length int, score int, best_score int, min_score int, letter1 TEXT(1), letter1_pos INT, letter2 TEXT(1), letter2_pos INT, letter3 TEXT(1), letter3_pos INT, completed INT, UNIQUE(id, letter1, letter1_pos), UNIQUE(id, letter2, letter2_pos), UNIQUE(id, letter3, letter3_pos));',
+                'CREATE TABLE IF NOT EXISTS levels (id INTEGER PRIMARY KEY, length int, score int, best_score int, min_score int, pro_score int, letter1 TEXT(1), letter1_pos INT, letter2 TEXT(1), letter2_pos INT, letter3 TEXT(1), letter3_pos INT, completed INT, UNIQUE(id, letter1, letter1_pos), UNIQUE(id, letter2, letter2_pos), UNIQUE(id, letter3, letter3_pos));',
                 [],
                 () => {
                     console.log('Table created: levels');
@@ -85,7 +85,7 @@ export async function initdb() {
     //console.log(levelData.data);
     levelData.data.forEach((row) => {
         //console.log(row.id, row.length, row.minScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
-        insertLevel(row.id, row.length, row.minScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
+        insertLevel(row.id, row.length, row.minScore, row.proScore, row.letter1, row.letter1Pos, row.letter2, row.letter2Pos, row.letter3, row.letter3Pos);
     });
 
     /*achievementData.data.forEach((row) => {
@@ -95,16 +95,16 @@ export async function initdb() {
 }
 
 
-function insertLevel(levelID, length, minScore, letter1, letter1pos, letter2, letter2pos, letter3, letter3pos) {
+function insertLevel(levelID, length, minScore, proScore, letter1, letter1pos, letter2, letter2pos, letter3, letter3pos) {
     db.transaction(tx => {
         tx.executeSql(
-            'INSERT INTO levels (id, length, score, best_score, min_score, letter1, letter1_pos, letter2, letter2_pos, letter3, letter3_pos, completed) VALUES (?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, 0);',
-            [levelID, length, minScore, letter1, letter1pos, letter2, letter2pos, letter3, letter3pos],
+            'INSERT INTO levels (id, length, score, best_score, min_score, pro_score, letter1, letter1_pos, letter2, letter2_pos, letter3, letter3_pos, completed) VALUES (?, ?, 0, 0, ?, ?, ?, ?, ?, ?, ?, ?, 0);',
+            [levelID, length, minScore, proScore, letter1, letter1pos, letter2, letter2pos, letter3, letter3pos],
             () => {
                 //console.log('INSERT Success levelID:', levelID);
             },
             error => {
-                console.log('INSERT ERROR ID:', levelID);
+                console.log('INSERT ERROR ID:', levelID, error);
             }
         );
     });

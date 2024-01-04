@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useContext, createContext,useState, useReducer, useEffect } from "react";
+import { useContext, createContext, useState, useReducer, useEffect } from "react";
 import { getCompletedWords, getLevelData } from "../../data/database";
 
 const GameContext = createContext();
@@ -12,6 +12,7 @@ const initialState = {
     score: 0,
     bestScore: 0,
     minScore: 1,
+    proScore: 0,
     completedWordList: [],
     staticPosList: [],
     indexStack: [],
@@ -21,28 +22,41 @@ const initialState = {
 };
 
 function reducer(state, action) {
-    switch(action.type) {
-        case 'CHANGE_LEVEL': return {...state, level: action.payload};
-        case 'SET_DEFAULT_WORD': return {...state, defaultWord: action.payload};
-        case 'SET_CURRENT_WORD': return {...state, currentWord: action.payload};
-        case 'SET_SCORE': return {...state, score: action.payload};
-        case 'SET_BEST_SCORE': return {...state, bestScore: action.payload};
-        case 'SET_MIN_SCORE': return {...state, minScore: action.payload};
-        case 'UPDATE_COMPLETED_LIST': return {...state, completedWordList: action.payload};
-        case 'SET_STATIC_POS_LIST': return{...state, staticPosList: action.payload};
-        case 'UPDATE_INDEX_STACK': return {...state, indexStack: action.payload};
-        case 'SET_COMPLETED': return {...state, completed: action.payload};
-        case 'UPDATE_VALID': return {...state, valid: action.payload};
-        case 'SHOW_POPUP': return {...state, popup: true};
-        case 'HIDE_POPUP': return {...state, popup: false};
+    switch (action.type) {
+        case 'CHANGE_LEVEL': return { ...state, level: action.payload };
+        case 'SET_DEFAULT_WORD': return { ...state, defaultWord: action.payload };
+        case 'SET_CURRENT_WORD': return { ...state, currentWord: action.payload };
+        case 'SET_SCORE': return { ...state, score: action.payload };
+        case 'SET_BEST_SCORE': return { ...state, bestScore: action.payload };
+        case 'SET_MIN_SCORE': return { ...state, minScore: action.payload };
+        case 'SET_PRO_SCORE': return { ...state, proScore: action.payload };
+        case 'UPDATE_COMPLETED_LIST': return { ...state, completedWordList: action.payload };
+        case 'SET_STATIC_POS_LIST': return { ...state, staticPosList: action.payload };
+        case 'UPDATE_INDEX_STACK': return { ...state, indexStack: action.payload };
+        case 'SET_COMPLETED': return { ...state, completed: action.payload };
+        case 'UPDATE_VALID': return { ...state, valid: action.payload };
+        case 'SHOW_POPUP': return { ...state, popup: true };
+        case 'HIDE_POPUP': return { ...state, popup: false };
+        case 'LEVEL_SETUP': return {
+            ...state,
+            defaultWord: action.payload.defaultWord,
+            currentWord: action.payload.currentWord,
+            score: action.payload.score,
+            bestScore: action.payload.bestScore,
+            minScore: action.payload.minScore,
+            proScore: action.payload.proScore,
+            staticPosList: action.payload.staticPosList,
+            completed: action.payload.completed,
+            popup: false
+        }
     }
 }
 
 
-export function GameContextProvider({children}) {
+export function GameContextProvider({ children }) {
 
     const [gameState, gameDispatch] = useReducer(reducer, initialState);
-    
+
     useEffect(() => {
         console.log('-------------');
         console.log('Level Changed');
@@ -113,30 +127,35 @@ export function GameContextProvider({children}) {
                     newDefault[data.letter3_pos] = data.letter3;
                     staticPosArr.push(data.letter3_pos);
                 }
-                
+
                 let newCurrent = [...newDefault]; // ensures that default and current don't share the same reference
 
-                // these dispatches might do better if put under one larger dispatch
-                gameDispatch({type: 'SET_DEFAULT_WORD', payload: newDefault});
-                gameDispatch({type: 'SET_CURRENT_WORD', payload: newCurrent});
-                gameDispatch({type: 'SET_SCORE', payload: data.score});
-                gameDispatch({type: 'SET_BEST_SCORE', payload: data.best_score});
-                gameDispatch({type: 'SET_MIN_SCORE', payload: data.min_score});
-                gameDispatch({type: 'SET_STATIC_POS_LIST', payload: staticPosArr});
-                gameDispatch({type: 'SET_COMPLETED', payload: data.completed});
-                gameDispatch({type: 'HIDE_POPUP'});
+                const payload = {
+                    defaultWord: newDefault,
+                    currentWord: newCurrent,
+                    score: data.score,
+                    bestScore: data.best_score,
+                    minScore: data.min_score,
+                    proScore: data.pro_score,
+                    staticPosList: staticPosArr,
+                    completed: data.completed
+                }
+
+                // a single dispatch makes it much faster, and fixes a lot of nonsense
+                gameDispatch({ type: 'LEVEL_SETUP', payload: payload});
+
             });
         getCompletedWords(level)
             .then((list) => {
                 if (list) {
                     console.log('[GameContext.js] getCompletedWords() called');
-                    gameDispatch({type: 'UPDATE_COMPLETED_LIST', payload: list});
+                    gameDispatch({ type: 'UPDATE_COMPLETED_LIST', payload: list });
                 }
             });
     }
 
     return (
-        <GameContext.Provider value={{gameState, gameDispatch}}>
+        <GameContext.Provider value={{ gameState, gameDispatch }}>
             {children}
         </GameContext.Provider>
     );
@@ -144,7 +163,7 @@ export function GameContextProvider({children}) {
 
 export function useGameContext() {
     const context = useContext(GameContext);
-    if(!context) {
+    if (!context) {
         throw new Error('Game context must be used within a GameContextProvider');
     }
     return context;

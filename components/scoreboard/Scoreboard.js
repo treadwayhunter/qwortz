@@ -14,7 +14,7 @@ export function Scoreboard() {
     return (
         <View aria-label='scoreboard' style={{ flex: 1, width: '100%', alignItems: 'center', backgroundColor: theme === 'light' ? '#fff' : '#121212' }}>
             <ScoreInfo />
-            <ProgressBar score={gameState.score} minScore={gameState.minScore} />
+            <ProgressBar />
             <View style={{ flex: 0.25, width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                 {gameState.bestScore >= gameState.minScore
                     ? <View style={{ borderWidth: 3, borderColor: 'green', borderRadius: 100, height: 40, width: 40, alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon color='green' size={24} icon={faCheck} /></View>

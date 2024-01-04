@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Text, FlatList, TouchableHighlight, TouchableOpacity } from "react-native";
 import { checkCompleted, getCompletedWords, getLevelDataBrief, getNumLevels } from "../data/database";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowLeft, faCheck } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faCheck, faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { useGameContext } from "./contexts/GameContext";
@@ -40,9 +40,11 @@ export function LevelListHeader() {
     );
 }
 
-function LevelCardInfo({ id, score, minScore, completed }) {
+function LevelCardInfo({ id, score, minScore, completed, currentLevel }) {
     //console.log(minScore);
     const { theme, setTheme } = useThemeContext();
+
+    //console.log(id, currentLevel);
 
     return (
         <View style={{
@@ -57,13 +59,40 @@ function LevelCardInfo({ id, score, minScore, completed }) {
                 <Text style={{ color: theme === 'light' ? '#000' : '#fff' }}>Score: {score}/{minScore}</Text>
             </View>
             {
-                completed ? <View style={{ borderRadius: 100, borderWidth: 2, borderColor: 'green', padding: 2, alignItems: 'center', justifyContent: 'center' }}><FontAwesomeIcon color="green" icon={faCheck} /></View> : <></>
+                completed
+                    ? <View style={{
+                        borderRadius: 100,
+                        borderWidth: 2,
+                        borderColor: 'green',
+                        padding: 2,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <FontAwesomeIcon color="green" icon={faCheck} />
+                    </View> 
+                    : id !== currentLevel 
+                        ? <View style={{
+                            borderRadius: 100,
+                            padding: 2,
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <FontAwesomeIcon icon={faLock} />
+                        </View>
+                        : <View style={{
+                            borderRadius: 100,
+                            padding: 2,
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <FontAwesomeIcon color="green" icon={faLockOpen} />
+                        </View>
             }
         </View>
     );
 }
 
-function LevelCard({ id, score, minScore, completed }) {
+function LevelCard({ id, score, minScore, completed, currentLevel, height }) {
 
     const navigation = useNavigation();
     const { gameState, gameDispatch } = useGameContext();
@@ -93,7 +122,7 @@ function LevelCard({ id, score, minScore, completed }) {
         <TouchableHighlight
             onPress={handlePress}
             style={{
-                height: 60,
+                height: height,
                 width: '100%',
                 borderBottomWidth: 1,
                 justifyContent: 'center',
@@ -104,7 +133,7 @@ function LevelCard({ id, score, minScore, completed }) {
             }}
             underlayColor={'#098287'}
         >
-            <LevelCardInfo id={id} score={score} minScore={minScore} completed={completed} />
+            <LevelCardInfo id={id} score={score} minScore={minScore} completed={completed} currentLevel={currentLevel}/>
         </TouchableHighlight>
     );
 }
@@ -113,9 +142,11 @@ export function LevelList() {
     // needs to know the number of completed levels + 1
     // the +1 is the current working level
     // 
-
+    const flatListRef = useRef(null);
     const [levels, setLevels] = useState([]);
     const { theme, setTheme } = useThemeContext();
+    const [currentLevel, setCurrentLevel] = useState(1);
+    const interval = 60;
 
     useEffect(() => {
 
@@ -123,16 +154,28 @@ export function LevelList() {
             .then((value) => {
                 setLevels(value);
             });
+        getNumLevels()
+            .then((value) => {
+                setCurrentLevel(value + 1);
+                if (flatListRef.current) {
+                    flatListRef.current.scrollToIndex({ animated: true, index: value });
+                }
+            })
     }, []);
 
     // should probably be a flatlist instead of map
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: theme === 'light' ? '#fff' : '#121212' }}>
             <FlatList
+                ref={flatListRef}
                 data={levels}
-                renderItem={({ item }) => <LevelCard id={item["id"]} score={item["score"]} minScore={item["min_score"]} completed={item["completed"]} />}
+                renderItem={({ item }) => <LevelCard id={item["id"]} score={item["score"]} minScore={item["min_score"]} completed={item["completed"]} currentLevel={currentLevel} height={interval}/>}
                 keyExtractor={item => item["id"]}
                 style={{ width: '100%' }}
+                snapToInterval={interval}
+                getItemLayout={(data, index) => (
+                    {length: interval, offset: interval * index, index}
+                )}
             />
         </View>
     );
