@@ -128,7 +128,7 @@ export function Keyboard() {
             aria-label='keyboard'
             style={{
                 width: '100%',
-                backgroundColor: theme === 'light' ? '#094387' : '#2c2c2c',
+                backgroundColor: theme === 'light' ? '#094387' : '#121212',
                 alignItems: 'center',
                 marginTop: 'auto',
                 paddingBottom: 30,

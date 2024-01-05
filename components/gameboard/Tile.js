@@ -6,7 +6,7 @@ export function Tile({ letter, valid, index, handlePress, locked }) {
     const { theme, setTheme } = useThemeContext();
 
 
-    let color = theme === 'light' ? '#fff' : letter ? '#2c2c2c' : '#121212';
+    let color = theme === 'light' ? '#fff' : '#121212'
     if (valid === 'good') {
         color = '#0b9f5b';
     }
@@ -27,14 +27,14 @@ export function Tile({ letter, valid, index, handlePress, locked }) {
             borderBottomWidth: 3,
             borderWidth: letter ? 3 : 0,
             borderRadius: letter ? 8 : 0,
-            borderColor: theme === 'light' ? '#000' : '#098287',
+            borderColor: theme === 'light' ? '#000' : '#fff',
             margin: 3,
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: color
         }}
             onPress={() => handlePress(index)}
-            underlayColor={'#874d09'}
+            underlayColor={'#098287'}
             disabled={letter ? false : true}
         >
             <Text style={{ fontSize: 32, color: theme === 'light' ? '#000' : '#fff' }}>{letter}</Text>
@@ -43,3 +43,5 @@ export function Tile({ letter, valid, index, handlePress, locked }) {
   
     );
 }
+
+//            borderColor: theme === 'light' ? '#000' : '#098287',

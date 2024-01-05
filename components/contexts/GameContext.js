@@ -96,7 +96,7 @@ export function GameContextProvider({ children }) {
         else {
             AsyncStorage.getItem('level')
                 .then((value) => {
-                    gameDispatch({ type: 'CHANGE_LEVEL', payload: Number(value) });
+                    gameDispatch({ type: 'CHANGE_LEVEL', payload: Number(value) }); // this could probably be pushed to LEVEL_SETUP
                     getLevel(value);
                 });
         }

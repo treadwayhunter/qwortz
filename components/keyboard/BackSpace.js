@@ -21,10 +21,10 @@ export function BackSpace({ onPress }) {
                 margin: 1,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: theme === 'light' ? '#fff' : '#098287',
+                backgroundColor: theme === 'light' ? '#fff' : '#094387',
                 position: 'absolute',
             }}
-            underlayColor={'#874d09'}
+            underlayColor={'#098287'}
             onPress={onPress}
         >
             <FontAwesomeIcon size={32} icon={faLeftLong} color={theme === 'light' ? '#000' : '#fff'} />

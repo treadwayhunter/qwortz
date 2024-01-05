@@ -4,47 +4,46 @@
  * The database can simply maintain whether they've been completed or not..........
  */
 
-// Achievement
-//------------------
-// title
-// description
-// win condition // condition type + number of type
-// achieved or not
-// date achieved
+import { LinearGradient } from "react-native-svg";
 
-// win condition is the difficult one.
+// achievements can be done by type, but then in programmatically done in switch cases
 // 
-
-// at some point, achievement data will need to be kept persistent somewhere
-// 
-
 /**
- * Types of achievements
- *  - complete levels
- *  - complete words
- *  - playing for a consecutive number of days
- *  - time frame?
- *  - time played
- *  - social stuff?
+ * Types
+ *  word count
+ *  level completions
+ *      easy to keep adding more types
  */
 
-// I could keep the win condition outside of the achievement itself.......
+// type == a String
+// value depends on the string, but will likely always be an integer 
+export default function achievementChecker(type, value) {
+    if (type === 'wordCount') {
+        switch (value) {
+            case 10: return;
+            case 25: return;
+            case 100: return;
+            case 500: return;
+            case 1000: return;
+            case 5000: return;
+            case 10000: return; // 10 words per level?
+            case 20000: return; // 20 words per level
+            case 50000: return; // 50 words per level  
+        }
+    }
 
-/**
- * 
- * class Achievement
- *  string title
- *  string desc
- *  bool achieved
- *  date time_achieved
- * 
- *  
- * 
- */
-
-// number of words completed and number of levels completed can be kept in async storage... then brought to into memory during the lifetime of the game process
-// for all achievements.... this is kind of lengthy to check all achievements each time an action is performed
-// when an achievement is completed, a notification can be placed on the victory stack
-
-// a separate achievement context might be easier to implement than trying to merge it with the game context
-// 
+    if (type === 'level') {
+        switch (value) {
+            case 1: return;
+            case 5: return;
+            case 10: return;
+            case 20: return;
+            case 50: return;
+            case 100: return;
+            case 200: return;
+            case 500: return;
+            case 1000: return; // game complete
+        }
+    }
+    // other achievements can be added here
+}

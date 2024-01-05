@@ -41,10 +41,7 @@ export function LevelListHeader() {
 }
 
 function LevelCardInfo({ id, score, minScore, completed, currentLevel }) {
-    //console.log(minScore);
     const { theme, setTheme } = useThemeContext();
-
-    //console.log(id, currentLevel);
 
     return (
         <View style={{
@@ -69,15 +66,15 @@ function LevelCardInfo({ id, score, minScore, completed, currentLevel }) {
                         justifyContent: 'center'
                     }}>
                         <FontAwesomeIcon color="green" icon={faCheck} />
-                    </View> 
-                    : id !== currentLevel 
+                    </View>
+                    : id !== currentLevel
                         ? <View style={{
                             borderRadius: 100,
                             padding: 2,
                             alignItems: 'center',
                             justifyContent: 'center'
                         }}>
-                            <FontAwesomeIcon icon={faLock} />
+                            <FontAwesomeIcon color={theme === 'light' ? '#000' : '#fff'} size={20} icon={faLock} />
                         </View>
                         : <View style={{
                             borderRadius: 100,
@@ -85,7 +82,7 @@ function LevelCardInfo({ id, score, minScore, completed, currentLevel }) {
                             alignItems: 'center',
                             justifyContent: 'center'
                         }}>
-                            <FontAwesomeIcon color="green" icon={faLockOpen} />
+                            <></>
                         </View>
             }
         </View>
@@ -133,7 +130,7 @@ function LevelCard({ id, score, minScore, completed, currentLevel, height }) {
             }}
             underlayColor={'#098287'}
         >
-            <LevelCardInfo id={id} score={score} minScore={minScore} completed={completed} currentLevel={currentLevel}/>
+            <LevelCardInfo id={id} score={score} minScore={minScore} completed={completed} currentLevel={currentLevel} />
         </TouchableHighlight>
     );
 }
@@ -146,10 +143,12 @@ export function LevelList() {
     const [levels, setLevels] = useState([]);
     const { theme, setTheme } = useThemeContext();
     const [currentLevel, setCurrentLevel] = useState(1);
-    const interval = 60;
+    
+    const interval = 60; // the size of the LevelCard. This value also informs snapToInterval and getItemLayout. 
+    // This improves the scrolling ability of the Flatlist.
 
     useEffect(() => {
-
+        // I don't suppose there'd be an error, but if there is then it won't catch or correct.
         getLevelDataBrief()
             .then((value) => {
                 setLevels(value);
@@ -160,7 +159,7 @@ export function LevelList() {
                 if (flatListRef.current) {
                     flatListRef.current.scrollToIndex({ animated: true, index: value });
                 }
-            })
+            });
     }, []);
 
     // should probably be a flatlist instead of map
@@ -169,12 +168,12 @@ export function LevelList() {
             <FlatList
                 ref={flatListRef}
                 data={levels}
-                renderItem={({ item }) => <LevelCard id={item["id"]} score={item["score"]} minScore={item["min_score"]} completed={item["completed"]} currentLevel={currentLevel} height={interval}/>}
+                renderItem={({ item }) => <LevelCard id={item["id"]} score={item["score"]} minScore={item["min_score"]} completed={item["completed"]} currentLevel={currentLevel} height={interval} />}
                 keyExtractor={item => item["id"]}
                 style={{ width: '100%' }}
                 snapToInterval={interval}
                 getItemLayout={(data, index) => (
-                    {length: interval, offset: interval * index, index}
+                    { length: interval, offset: interval * index, index }
                 )}
             />
         </View>

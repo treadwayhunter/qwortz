@@ -22,9 +22,9 @@ export function Key({ letter, onPress }) {
                 margin: 1,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: theme === 'light' ? '#fff' : '#098287'
+                backgroundColor: theme === 'light' ? '#fff' : '#094387'
             }}
-            underlayColor={'#874d09'}
+            underlayColor={'#098287'}
             onPress={() => onPress(letter)}
         >
             <Text style={{ fontSize: width / 1.5, color: theme === 'light' ? '#000' : '#fff' }}>{letter}</Text>
