@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { Key } from './Key';
 import { BackSpace } from './BackSpace';
 import { useGameContext } from '../contexts/GameContext';
-import dictionary from '../../assets/dictionary.json';
 import { checkCompleted, insertCompletedWord, refreshLevel, updateBestScore, updateCompleted, updateScore } from '../../data/database';
 import { useThemeContext } from '../contexts/ThemeContext';
 import validateWord from '../../utils/ValidateWord';
@@ -81,7 +80,8 @@ export function Keyboard() {
             updateBestScore(gameState.level);
         }
         if (points === gameState.minScore) { // this will only occur once
-            updateCompleted(gameState.level); // SQL call
+            updateCompleted(gameState.level); // SQL call to complete the level
+            gameDispatch({ type: 'INPROGRESS_LEVEL', payload: gameState.inProgressLevel + 1 });
             //setCompleted(true);
             gameDispatch({ type: 'SET_COMPLETED', payload: true }); // game call
             // when this occurs for the first time

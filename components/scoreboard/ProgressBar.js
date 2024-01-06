@@ -1,4 +1,4 @@
-import { View, Animated } from 'react-native';
+import { View, Animated, Text } from 'react-native';
 import { useThemeContext } from '../contexts/ThemeContext';
 import { useGameContext } from '../contexts/GameContext';
 import { useEffect, useRef, useState } from 'react';
@@ -66,7 +66,8 @@ export function ProgressBar() {
                     height: '100%',
                     width: proWidthAnim,
                     backgroundColor: '#094387',
-                }} />
+                }}>
+                </Animated.View>
             </Animated.View>
 
         </View>

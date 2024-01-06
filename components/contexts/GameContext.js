@@ -1,12 +1,11 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useContext, createContext, useState, useReducer, useEffect } from "react";
-import { getCompletedWords, getLevelData } from "../../data/database";
+import { getCompletedWords, getLevelData, getNumLevels } from "../../data/database";
 
 const GameContext = createContext();
 
 const initialState = {
     level: 0, // the level the user is CURRENTLY on
-    progressLevel: 1, // the max level the user is currently progressing
+    inProgressLevel: 1, // the max level the user is currently progressing
     defaultWord: [],
     currentWord: [],
     score: 0,
@@ -33,12 +32,13 @@ function reducer(state, action) {
         case 'UPDATE_COMPLETED_LIST': return { ...state, completedWordList: action.payload };
         case 'SET_STATIC_POS_LIST': return { ...state, staticPosList: action.payload };
         case 'UPDATE_INDEX_STACK': return { ...state, indexStack: action.payload };
-        case 'SET_COMPLETED': return { ...state, completed: action.payload };
+        case 'SET_COMPLETED': return { ...state, completed: action.payload }; // set completed should also increment the progressLevel
         case 'UPDATE_VALID': return { ...state, valid: action.payload };
         case 'SHOW_POPUP': return { ...state, popup: true };
         case 'HIDE_POPUP': return { ...state, popup: false };
         case 'LEVEL_SETUP': return {
             ...state,
+            level: action.payload.level,
             defaultWord: action.payload.defaultWord,
             currentWord: action.payload.currentWord,
             score: action.payload.score,
@@ -49,6 +49,7 @@ function reducer(state, action) {
             completed: action.payload.completed,
             popup: false
         }
+        case 'INPROGRESS_LEVEL': return { ...state, inProgressLevel: action.payload };
     }
 }
 
@@ -57,55 +58,28 @@ export function GameContextProvider({ children }) {
 
     const [gameState, gameDispatch] = useReducer(reducer, initialState);
 
+    // This gets called when gameState.level changes
     useEffect(() => {
-        console.log('-------------');
-        console.log('Level Changed');
-        initLevel();
+        getNumLevels()
+            .then((value) => {
+                const targetLevel = value + 1;
+                gameDispatch({ type: 'INPROGRESS_LEVEL', payload: targetLevel });
+            });
+    }, []);
+
+    useEffect(() => {
+        if (gameState.level) {
+            console.log('-------------');
+            console.log('Level Changed');
+            //initLevelData();
+            getLevel(gameState.level);
+        }
     }, [gameState.level]);
 
-    function initLevel() {
-        console.log('[GameContext.js] initLevel()');
-        if (!gameState.level) {
-            try {
-                AsyncStorage.getItem('level')
-                    .then((value) => {
-                        if (!value) {
-                            AsyncStorage.setItem('level', '1');
-                            gameDispatch({ type: 'CHANGE_LEVEL', payload: 1 });
-                            getLevel(1);
-
-                            // There was a situation in which level = NaN, which breaks the game
-                        }
-                        else {
-                            gameDispatch({ type: 'CHANGE_LEVEL', payload: Number(value) });
-                            getLevel(value);
-                        }
-                    });
-            }
-            catch (error) {
-                // Error getting item
-                // What happens if the AsyncStorage call fails?
-                // 1) Data fetching errors
-                // 2) Storage limits
-                // 3) JSON parsing errors
-                // 4) Platform-specific issues
-                // 5) Concurrency and timing issues
-                // 6) OUtdated or incompatible version of AsyncStorage
-            }
-        }
-        else {
-            AsyncStorage.getItem('level')
-                .then((value) => {
-                    gameDispatch({ type: 'CHANGE_LEVEL', payload: Number(value) }); // this could probably be pushed to LEVEL_SETUP
-                    getLevel(value);
-                });
-        }
-    }
-
-    function getLevel(level) {
+    function getLevel(currentLevel) {
         //console.log('[GameContext.js] getLevel() called for level: ', level);
-        console.log('[GameContext.js] getting level: ', level);
-        getLevelData(level)
+        console.log('[GameContext.js] getting level: ', currentLevel);
+        getLevelData(currentLevel)
             .then((data) => {
                 let newDefault = [];
                 let staticPosArr = [];
@@ -131,6 +105,7 @@ export function GameContextProvider({ children }) {
                 let newCurrent = [...newDefault]; // ensures that default and current don't share the same reference
 
                 const payload = {
+                    level: currentLevel,
                     defaultWord: newDefault,
                     currentWord: newCurrent,
                     score: data.score,
@@ -142,10 +117,10 @@ export function GameContextProvider({ children }) {
                 }
 
                 // a single dispatch makes it much faster, and fixes a lot of nonsense
-                gameDispatch({ type: 'LEVEL_SETUP', payload: payload});
+                gameDispatch({ type: 'LEVEL_SETUP', payload: payload });
 
             });
-        getCompletedWords(level)
+        getCompletedWords(currentLevel)
             .then((list) => {
                 if (list) {
                     console.log('[GameContext.js] getCompletedWords() called');

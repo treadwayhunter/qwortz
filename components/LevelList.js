@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { View, Text, FlatList, TouchableHighlight, TouchableOpacity } from "react-native";
 import { checkCompleted, getCompletedWords, getLevelDataBrief, getNumLevels } from "../data/database";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faArrowLeft, faCheck, faLock, faLockOpen } from "@fortawesome/free-solid-svg-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
 import { useGameContext } from "./contexts/GameContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,7 +10,6 @@ import { useThemeContext } from "./contexts/ThemeContext";
 
 export function LevelListHeader() {
     const insets = useSafeAreaInsets();
-    const [color, setColor] = useState('#094387');
     const navigation = useNavigation();
     //#098287
     const { theme, setTheme } = useThemeContext();
@@ -95,6 +93,8 @@ function LevelCard({ id, score, minScore, completed, currentLevel, height }) {
     const { gameState, gameDispatch } = useGameContext();
     const { theme, setTheme } = useThemeContext();
 
+    //console.log(`[LevelCard] rendered card: ${id}`);
+
     function handlePress() {
         console.log('NAVIGATE TO', id);
 
@@ -112,7 +112,7 @@ function LevelCard({ id, score, minScore, completed, currentLevel, height }) {
     function changeLevel(level) {
         gameDispatch({ type: 'CHANGE_LEVEL', payload: level });
         navigation.navigate({ name: 'Game' });
-        AsyncStorage.setItem('level', String(level));
+        //AsyncStorage.setItem('level', String(level));
     }
 
     return (
@@ -125,7 +125,7 @@ function LevelCard({ id, score, minScore, completed, currentLevel, height }) {
                 justifyContent: 'center',
                 paddingLeft: 30,
                 paddingRight: 30,
-                backgroundColor: theme === 'light' ? '#fff' : '#2c2c2c',
+                backgroundColor: theme === 'light' ? '#fff' : '#121212',
                 borderColor: theme === 'light' ? '#000' : '#fff'
             }}
             underlayColor={'#098287'}
@@ -135,6 +135,8 @@ function LevelCard({ id, score, minScore, completed, currentLevel, height }) {
     );
 }
 
+const MemoLevelCard = memo(LevelCard);
+
 export function LevelList() {
     // needs to know the number of completed levels + 1
     // the +1 is the current working level
@@ -143,9 +145,11 @@ export function LevelList() {
     const [levels, setLevels] = useState([]);
     const { theme, setTheme } = useThemeContext();
     const [currentLevel, setCurrentLevel] = useState(1);
-    
+    const { gameState, gameDispatch } = useGameContext();
+
     const interval = 60; // the size of the LevelCard. This value also informs snapToInterval and getItemLayout. 
     // This improves the scrolling ability of the Flatlist.
+    //console.log('PROGRESS LEVEL: ', gameState.progressLevel);
 
     useEffect(() => {
         // I don't suppose there'd be an error, but if there is then it won't catch or correct.
@@ -153,28 +157,27 @@ export function LevelList() {
             .then((value) => {
                 setLevels(value);
             });
-        getNumLevels()
-            .then((value) => {
-                setCurrentLevel(value + 1);
-                if (flatListRef.current) {
-                    flatListRef.current.scrollToIndex({ animated: true, index: value });
-                }
-            });
     }, []);
 
-    // should probably be a flatlist instead of map
+    /**
+     * to better optimize flatlist, I can use the initialScrollIndex instead of scrollToIndex
+     * This will likely work better when the starting number is high. It appears to be at least.
+     * What would be helpful though, would be to maintain the current level in progress at a higher component,
+     * then use that as the value for initialScrollIndex={gameState.progressLevel}
+     */
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: theme === 'light' ? '#fff' : '#121212' }}>
             <FlatList
                 ref={flatListRef}
                 data={levels}
-                renderItem={({ item }) => <LevelCard id={item["id"]} score={item["score"]} minScore={item["min_score"]} completed={item["completed"]} currentLevel={currentLevel} height={interval} />}
+                renderItem={({ item }) => <MemoLevelCard id={item["id"]} score={item["score"]} minScore={item["min_score"]} completed={item["completed"]} currentLevel={gameState.inProgressLevel} height={interval} />}
                 keyExtractor={item => item["id"]}
                 style={{ width: '100%' }}
                 snapToInterval={interval}
                 getItemLayout={(data, index) => (
                     { length: interval, offset: interval * index, index }
                 )}
+                initialScrollIndex={ gameState.inProgressLevel - 1 }
             />
         </View>
     );

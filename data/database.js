@@ -155,7 +155,7 @@ export function dropTables() {
         );
     });
     AsyncStorage.removeItem('initDB');
-    AsyncStorage.removeItem('level');
+    //AsyncStorage.removeItem('level');
 }
 
 export function getLevelData(level) {

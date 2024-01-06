@@ -1,9 +1,7 @@
 import { View, Text, TouchableHighlight, Switch } from 'react-native';
 import { useGameContext } from './contexts/GameContext';
 import { useEffect, useState } from 'react';
-import { getNumLevels } from '../data/database';
 import { useNavigation } from '@react-navigation/native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import ThemeSwitch from './ThemeSwitch';
 import { useThemeContext } from './contexts/ThemeContext';
 
@@ -22,7 +20,7 @@ function HomeButton({ value, callback }) {
                 justifyContent: 'center',
                 margin: 8,
                 backgroundColor: theme === 'light' ? '#fff' : '#2c2c2c',
-                borderColor: theme === 'light' ? '#000' : '#098287'
+                borderColor: theme === 'light' ? '#000' : '#fff'
             }}
             underlayColor={'#098287'}
             onPress={callback}
@@ -33,28 +31,26 @@ function HomeButton({ value, callback }) {
 }
 
 export default function Home() {
-    const [inProgressLevel, setInProgressLevel] = useState(0);
     const { gameState, gameDispatch } = useGameContext();
     const { theme, setTheme } = useThemeContext();
 
     const navigation = useNavigation();
-
+    console.log('HOME PROGRESS LEVEL: ', gameState.inProgressLevel);
     // needs to show the level in progress, not the current selected level...
-    useEffect(() => {
-        getNumLevels()
-            .then((value) => {
-                const progress = value + 1;
-                setInProgressLevel(progress);
-            });
-    });
 
+    /**
+     * handleLevelStart()
+     * The level button on the homepage will always display the inProgressLevel
+     * When this function is called, it changes the level to be the inProgressLevel
+     *      Then it navigates to the game screen.
+     */
     function handleLevelStart() {
-        AsyncStorage.setItem('level', String(inProgressLevel));
-        gameDispatch({ type: 'CHANGE_LEVEL', payload: inProgressLevel });
+        //AsyncStorage.setItem('level', String(gameState.inProgressLevel)); // so, this is correct... it might need fixing though
+        gameDispatch({ type: 'CHANGE_LEVEL', payload: gameState.inProgressLevel });
         navigation.navigate({ name: 'Game' });
     }
 
-    const levelText = `Level ${inProgressLevel}`;
+    const levelText = `Level ${gameState.inProgressLevel}`;
 
     return (
         <View style={{ flex: 1, width: '100%', backgroundColor: theme === 'light' ? '#fff' : '#121212' }}>

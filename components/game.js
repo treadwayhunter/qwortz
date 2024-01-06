@@ -1,5 +1,4 @@
 import { View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkCompleted, insertCompletedWord, refreshLevel, updateBestScore, updateCompleted, updateScore } from '../data/database';
 import { Keyboard } from './keyboard/Keyboard';
 import { Gameboard } from './gameboard/Gameboard';

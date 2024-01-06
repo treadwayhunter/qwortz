@@ -28,7 +28,7 @@ export function GameHeader() {
             return; // newLevel can't be 0
         }
         gameDispatch({ type: 'CHANGE_LEVEL', payload: newLevel });
-        AsyncStorage.setItem('level', String(newLevel));
+        //AsyncStorage.setItem('level', String(newLevel));
     }
 
     return (
