@@ -7,7 +7,7 @@ import { Setup } from './components/Setup';
 import { dropTables } from './data/database';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
-import { Settings, SettingsHeader } from './components/Settings';
+import { Settings, SettingsHeader } from './components/settings/Settings';
 import { LevelList, LevelListHeader } from './components/LevelList';
 import { GameContextProvider } from './components/contexts/GameContext';
 import Home from './components/Home';

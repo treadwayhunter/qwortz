@@ -30,6 +30,11 @@ function HomeButton({ value, callback }) {
     );
 }
 
+
+/**
+ * 
+ * TODO
+ */
 export default function Home() {
     const { gameState, gameDispatch } = useGameContext();
     const { theme, setTheme } = useThemeContext();

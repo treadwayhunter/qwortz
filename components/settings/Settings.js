@@ -2,12 +2,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { View, Text, TouchableHighlight, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { hardReset } from '../data/database';
-import { useGameContext } from './contexts/GameContext';
-import { useThemeContext } from './contexts/ThemeContext';
+import { hardReset } from '../../data/database';
+import { useGameContext } from '../contexts/GameContext';
+import { useThemeContext } from '../contexts/ThemeContext';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import ThemeSwitch from './ThemeSwitch';
+import ThemeSwitch from '../ThemeSwitch';
 
 export function SettingsHeader() {
   const insets = useSafeAreaInsets();
@@ -32,7 +32,7 @@ export function SettingsHeader() {
             </TouchableOpacity>
         </View>
         <View style={{ height: '100%', width: '50%', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ color: 'white', fontSize: 32 }}>Settings</Text>
+            <Text style={{ color: 'white', fontSize: 32 }}>Information</Text>
         </View>
         <View style={{ height: '100%', width: '25%' }}></View>
 

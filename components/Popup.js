@@ -46,12 +46,12 @@ export function Popup({ type }) {
                 <View style={{ width: '100%', height: '40%', alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ color: theme === 'light' ? '#000' : '#fff', fontSize: 32 }}>Great Work!</Text>
                 </View>
-                <TouchableOpacity style={{ width: '100%', height: '20%', alignItems: 'center', justifyContent: 'center', pointerEvents: 'auto' }}
+                <TouchableOpacity style={{ width: '75%', height: '20%', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderRadius: 16, marginBottom: 8 }}
                     onPress={handleNextLevel}
                 >
                     <Text style={{ color: theme === 'light' ? '#000' : '#fff' }}>Next Level</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ width: '100%', height: '20%', alignItems: 'center', justifyContent: 'center' }}
+                <TouchableOpacity style={{ width: '75%', height: '20%', alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderRadius: 16, marginBottom: 8 }}
                     onPress={() => gameDispatch({type: 'HIDE_POPUP'})}
                 >
                     <Text style={{ color: theme === 'light' ? '#000' : '#fff' }}>Stay on this level</Text>

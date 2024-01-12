@@ -8,6 +8,8 @@ import { useThemeContext } from '../contexts/ThemeContext';
 import validateWord from '../../utils/ValidateWord';
 import checkWordArray from '../../utils/CheckWordArray';
 
+// this calls way too many dispatches. The logic needs to be improved, and removed from the keyboard if possible.
+
 export function Keyboard() {
     const { gameState, gameDispatch } = useGameContext();
     const { theme, setTheme } = useThemeContext();
