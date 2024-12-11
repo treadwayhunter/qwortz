@@ -6,3 +6,7 @@ You must get to the minimum score to proceed to the next level.
 ## Self Project
 * Written in React Native
   - Works on Apple and Android
+
+## Testing Work
+npx expo start
+* then open in the app
